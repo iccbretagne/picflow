@@ -64,19 +64,16 @@ export default function DownloadPage() {
         throw new Error(response.error?.message || "Erreur de téléchargement")
       }
 
-      // Fetch the actual file as blob
-      const fileRes = await fetch(response.data.url)
-      const blob = await fileRes.blob()
+      // Use iframe to trigger download (avoids CORS and popup blockers)
+      const iframe = document.createElement("iframe")
+      iframe.style.display = "none"
+      iframe.src = response.data.url
+      document.body.appendChild(iframe)
 
-      // Create object URL and trigger download
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement("a")
-      link.href = url
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      // Clean up iframe after download starts
+      setTimeout(() => {
+        document.body.removeChild(iframe)
+      }, 5000)
 
       return true
     } catch (err) {
@@ -99,7 +96,7 @@ export default function DownloadPage() {
     let successCount = 0
     let errorCount = 0
 
-    // Download photos sequentially
+    // Download photos sequentially with longer delay
     for (const photo of data.photos) {
       const success = await downloadPhoto(photo.id, photo.filename)
       if (success) {
@@ -107,8 +104,8 @@ export default function DownloadPage() {
       } else {
         errorCount++
       }
-      // Delay between downloads to avoid browser issues
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      // Longer delay between downloads for browser to process
+      await new Promise((resolve) => setTimeout(resolve, 1000))
     }
 
     setDownloadingAll(false)
