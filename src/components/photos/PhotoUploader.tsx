@@ -62,8 +62,8 @@ export function PhotoUploader({ eventId }: PhotoUploaderProps) {
       }
 
       setResults({
-        uploaded: data.data.uploaded,
-        errors: data.data.errors,
+        uploaded: data.uploaded,
+        errors: data.errors,
       })
 
       // Refresh page to show new photos

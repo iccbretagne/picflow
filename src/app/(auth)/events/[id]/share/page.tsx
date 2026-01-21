@@ -54,7 +54,7 @@ export default function SharePage({
       const res = await fetch(`/api/events/${eventId}/share`)
       const data = await res.json()
       if (res.ok) {
-        setTokens(data.data.data || [])
+        setTokens(data.data || [])
       }
     } catch (error) {
       console.error("Error fetching tokens:", error)
