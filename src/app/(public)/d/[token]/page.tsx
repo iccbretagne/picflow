@@ -52,7 +52,7 @@ export default function DownloadPage() {
     fetchData()
   }, [token])
 
-  async function downloadPhoto(photoId: string, filename: string) {
+  async function downloadPhoto(photoId: string, filename: string): Promise<boolean> {
     setDownloading((prev) => new Set(prev).add(photoId))
 
     try {
@@ -64,16 +64,24 @@ export default function DownloadPage() {
         throw new Error(response.error?.message || "Erreur de téléchargement")
       }
 
-      // Trigger download
+      // Fetch the actual file as blob
+      const fileRes = await fetch(response.data.url)
+      const blob = await fileRes.blob()
+
+      // Create object URL and trigger download
+      const url = window.URL.createObjectURL(blob)
       const link = document.createElement("a")
-      link.href = response.data.url
+      link.href = url
       link.download = filename
-      link.target = "_blank"
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      return true
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur de téléchargement")
+      console.error("Download error:", err)
+      return false
     } finally {
       setDownloading((prev) => {
         const next = new Set(prev)
@@ -88,14 +96,26 @@ export default function DownloadPage() {
 
     setDownloadingAll(true)
 
-    // Download photos sequentially to avoid overwhelming the browser
+    let successCount = 0
+    let errorCount = 0
+
+    // Download photos sequentially
     for (const photo of data.photos) {
-      await downloadPhoto(photo.id, photo.filename)
-      // Small delay between downloads
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const success = await downloadPhoto(photo.id, photo.filename)
+      if (success) {
+        successCount++
+      } else {
+        errorCount++
+      }
+      // Delay between downloads to avoid browser issues
+      await new Promise((resolve) => setTimeout(resolve, 300))
     }
 
     setDownloadingAll(false)
+
+    if (errorCount > 0) {
+      alert(`${successCount} téléchargée(s), ${errorCount} erreur(s)`)
+    }
   }
 
   // Loading state
