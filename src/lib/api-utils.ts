@@ -72,8 +72,40 @@ export function validateParams<T extends z.ZodTypeAny>(
 // RESPONSE HELPERS
 // ============================================
 
+/**
+ * Standard API response format:
+ * - Success: { data: T }
+ * - Error: { error: { code, message, details? } }
+ *
+ * For paginated responses, use paginatedResponse() instead.
+ */
 export function successResponse<T>(data: T, status: number = 200) {
-  return NextResponse.json(data, { status })
+  return NextResponse.json({ data }, { status })
+}
+
+/**
+ * Paginated response format:
+ * { data: T[], pagination: { total, page, limit, pages } }
+ */
+export function paginatedResponse<T>(
+  items: T[],
+  total: number,
+  page: number,
+  limit: number,
+  status: number = 200
+) {
+  return NextResponse.json(
+    {
+      data: items,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    },
+    { status }
+  )
 }
 
 export function errorResponse(error: unknown) {
@@ -106,23 +138,6 @@ export function errorResponse(error: unknown) {
 // ============================================
 // PAGINATION HELPERS
 // ============================================
-
-export function paginate<T>(
-  items: T[],
-  total: number,
-  page: number,
-  limit: number
-) {
-  return {
-    data: items,
-    pagination: {
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
-    },
-  }
-}
 
 export function getPaginationParams(page: number, limit: number) {
   return {

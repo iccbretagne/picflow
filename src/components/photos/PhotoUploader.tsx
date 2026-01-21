@@ -55,15 +55,15 @@ export function PhotoUploader({ eventId }: PhotoUploaderProps) {
         body: formData,
       })
 
-      const data = await res.json()
+      const response = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error?.message || "Erreur lors de l'upload")
+        throw new Error(response.error?.message || "Erreur lors de l'upload")
       }
 
       setResults({
-        uploaded: data.uploaded,
-        errors: data.errors,
+        uploaded: response.data.uploaded,
+        errors: response.data.errors,
       })
 
       // Refresh page to show new photos

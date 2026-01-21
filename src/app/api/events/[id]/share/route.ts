@@ -77,8 +77,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const baseUrl = process.env.APP_URL || "http://localhost:3000"
 
-    return successResponse({
-      data: tokens.map((t) => ({
+    return successResponse(
+      tokens.map((t) => ({
         id: t.id,
         token: t.token,
         url: `${baseUrl}/${t.type === "VALIDATOR" ? "v" : "d"}/${t.token}`,
@@ -88,8 +88,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         lastUsedAt: t.lastUsedAt?.toISOString() || null,
         usageCount: t.usageCount,
         createdAt: t.createdAt.toISOString(),
-      })),
-    })
+      }))
+    )
   } catch (error) {
     return errorResponse(error)
   }

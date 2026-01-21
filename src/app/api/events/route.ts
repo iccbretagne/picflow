@@ -5,8 +5,8 @@ import {
   validateBody,
   validateQuery,
   successResponse,
+  paginatedResponse,
   errorResponse,
-  paginate,
   getPaginationParams,
 } from "@/lib/api-utils"
 import { CreateEventSchema, ListEventsQuerySchema } from "@/lib/schemas"
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return successResponse(paginate(eventsWithStats, total, query.page, query.limit))
+    return paginatedResponse(eventsWithStats, total, query.page, query.limit)
   } catch (error) {
     return errorResponse(error)
   }

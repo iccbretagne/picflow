@@ -86,6 +86,26 @@ Spec OpenAPI complète : `docs/openapi.yaml`
 - `GET/PATCH /api/validate/[token]` - Validation
 - `GET /api/download/[token]` - Téléchargement
 
+### Convention de réponse API
+
+Toutes les réponses API suivent un format standardisé :
+
+```typescript
+// Succès (status 2xx)
+{ data: T }
+
+// Succès paginé
+{ data: T[], pagination: { total, page, limit, pages } }
+
+// Erreur (status 4xx/5xx)
+{ error: { code: string, message: string, details?: unknown } }
+```
+
+**Helpers disponibles (`src/lib/api-utils.ts`) :**
+- `successResponse(data, status?)` → `{ data: T }`
+- `paginatedResponse(items, total, page, limit)` → `{ data: T[], pagination }`
+- `errorResponse(error)` → `{ error: { code, message } }`
+
 ## Principes de développement
 
 1. **IA-first** : Code clair, bien structuré, schémas Zod comme source de vérité

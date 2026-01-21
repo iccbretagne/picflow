@@ -47,16 +47,16 @@ export default function ValidationPage() {
     async function fetchData() {
       try {
         const res = await fetch(`/api/validate/${token}`)
+        const response = await res.json()
         if (!res.ok) {
-          const err = await res.json()
-          throw new Error(err.error?.message || "Failed to load")
+          throw new Error(response.error?.message || "Failed to load")
         }
-        const data = await res.json()
-        setData(data)
+        const eventData = response.data
+        setData(eventData)
 
         // Initialize decisions from existing status
         const initialDecisions = new Map<string, Decision>()
-        data.photos.forEach((photo: Photo) => {
+        eventData.photos.forEach((photo: Photo) => {
           if (photo.status !== "PENDING") {
             initialDecisions.set(photo.id, photo.status as Decision)
           }
