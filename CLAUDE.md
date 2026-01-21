@@ -132,17 +132,20 @@ Spec OpenAPI complète : `docs/openapi.yaml`
 ## État actuel
 
 ### Implémenté ✅
-- Schéma Prisma complet
+- Schéma Prisma complet + migrations
 - Toutes les routes API
 - Auth Google (NextAuth)
 - Page de login
 - Page de validation mobile (swipe + grid)
 - Utilitaires S3, Sharp, tokens
+- Page dashboard admin (liste événements)
+- Page création événement
+- Page détail événement (upload + gestion)
+- Page gestion des tokens de partage
+- Composants PhotoUploader et PhotoGrid
 
 ### À compléter 🚧
-- Page dashboard admin (liste événements)
-- Page détail événement (upload + gestion)
-- Page de téléchargement pour l'équipe média
+- Page de téléchargement pour l'équipe média (`/d/[token]`)
 - Tests unitaires et e2e
 - PWA service worker (offline)
 - Notifications email
