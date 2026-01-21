@@ -35,7 +35,7 @@ export default function NewEventPage() {
         throw new Error(err.error?.message || "Erreur lors de la création")
       }
 
-      const { data: event } = await res.json()
+      const event = await res.json()
       router.push(`/events/${event.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue")
