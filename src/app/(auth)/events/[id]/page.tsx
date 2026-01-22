@@ -3,7 +3,7 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { getSignedThumbnailUrl } from "@/lib/s3"
-import { Card, CardContent, CardHeader, Button } from "@/components/ui"
+import { Card, CardContent, CardHeader, Button, Badge } from "@/components/ui"
 import { PhotoUploader } from "@/components/photos/PhotoUploader"
 import { PhotoGrid } from "@/components/photos/PhotoGrid"
 import { EventActions } from "@/components/events"
@@ -38,18 +38,11 @@ type EventWithRelations = {
   }[]
 }
 
-const statusLabels: Record<EventStatus, string> = {
-  DRAFT: "Brouillon",
-  PENDING_REVIEW: "En attente de validation",
-  REVIEWED: "Validé",
-  ARCHIVED: "Archivé",
-}
-
-const statusColors: Record<EventStatus, string> = {
-  DRAFT: "bg-gray-100 text-gray-700",
-  PENDING_REVIEW: "bg-yellow-100 text-yellow-700",
-  REVIEWED: "bg-green-100 text-green-700",
-  ARCHIVED: "bg-blue-100 text-blue-700",
+const statusConfig: Record<EventStatus, { label: string; variant: "default" | "warning" | "success" | "info" }> = {
+  DRAFT: { label: "Brouillon", variant: "default" },
+  PENDING_REVIEW: { label: "En attente de validation", variant: "warning" },
+  REVIEWED: { label: "Validé", variant: "success" },
+  ARCHIVED: { label: "Archivé", variant: "info" },
 }
 
 export default async function EventDetailPage({
@@ -103,7 +96,7 @@ export default async function EventDetailPage({
       {/* Back link */}
       <Link
         href="/dashboard"
-        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
+        className="inline-flex items-center text-sm text-icc-violet hover:text-icc-violet-dark font-medium mb-6 transition-colors"
       >
         <svg
           className="w-4 h-4 mr-1"
@@ -125,15 +118,13 @@ export default async function EventDetailPage({
       <div className="flex flex-col lg:flex-row justify-between items-start gap-6 mb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold text-gray-900">{event.name}</h1>
-            <span
-              className={`px-3 py-1 text-sm font-medium rounded-full ${statusColors[event.status as EventStatus]}`}
-            >
-              {statusLabels[event.status as EventStatus]}
-            </span>
+            <h1 className="text-3xl font-bold text-icc-violet">{event.name}</h1>
+            <Badge variant={statusConfig[event.status as EventStatus].variant}>
+              {statusConfig[event.status as EventStatus].label}
+            </Badge>
           </div>
-          <p className="text-gray-600">{event.church.name}</p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-gray-700 font-medium">{event.church.name}</p>
+          <p className="text-sm text-gray-600 mt-1">
             {new Date(event.date).toLocaleDateString("fr-FR", {
               weekday: "long",
               year: "numeric",
@@ -144,7 +135,7 @@ export default async function EventDetailPage({
             })}
           </p>
           {event.description && (
-            <p className="text-gray-600 mt-3">{event.description}</p>
+            <p className="text-gray-700 mt-3">{event.description}</p>
           )}
         </div>
 
@@ -154,27 +145,27 @@ export default async function EventDetailPage({
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-            <p className="text-sm text-gray-600">Photos</p>
+          <CardContent className="p-5 text-center">
+            <p className="text-3xl font-bold text-icc-violet">{stats.total}</p>
+            <p className="text-sm text-gray-700 font-medium mt-1">Photos</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-5 text-center">
             <p className="text-3xl font-bold text-green-600">{stats.approved}</p>
-            <p className="text-sm text-gray-600">Validées</p>
+            <p className="text-sm text-gray-700 font-medium mt-1">Validées</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-red-600">{stats.rejected}</p>
-            <p className="text-sm text-gray-600">Rejetées</p>
+          <CardContent className="p-5 text-center">
+            <p className="text-3xl font-bold text-icc-rouge">{stats.rejected}</p>
+            <p className="text-sm text-gray-700 font-medium mt-1">Rejetées</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
-            <p className="text-sm text-gray-600">En attente</p>
+          <CardContent className="p-5 text-center">
+            <p className="text-3xl font-bold text-icc-jaune-dark">{stats.pending}</p>
+            <p className="text-sm text-gray-700 font-medium mt-1">En attente</p>
           </CardContent>
         </Card>
       </div>
@@ -183,34 +174,34 @@ export default async function EventDetailPage({
       {event.shareTokens.length > 0 && (
         <Card className="mb-8">
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <h2 className="font-semibold text-gray-900">Liens de partage</h2>
-              <Link href={`/events/${event.id}/share`}>
-                <Button variant="ghost" size="sm">
-                  Gérer
-                </Button>
-              </Link>
-            </div>
+            Liens de partage
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-icc-violet/10">
               {event.shareTokens.slice(0, 3).map((token) => (
                 <div
                   key={token.id}
-                  className="px-6 py-3 flex justify-between items-center"
+                  className="px-6 py-4 flex justify-between items-center hover:bg-icc-violet-light/30 transition-colors"
                 >
                   <div>
                     <p className="font-medium text-gray-900">
                       {token.label || "Sans nom"}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-600">
                       {token.type === "VALIDATOR" ? "Validation" : "Téléchargement"} •{" "}
-                      {token.usageCount} utilisation(s)
+                      {token.usageCount} utilisation{token.usageCount > 1 ? 's' : ''}
                     </p>
                   </div>
-                  {token.expiresAt && new Date(token.expiresAt) < new Date() && (
-                    <span className="text-xs text-red-600 font-medium">Expiré</span>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {token.expiresAt && new Date(token.expiresAt) < new Date() && (
+                      <Badge variant="danger" size="sm">Expiré</Badge>
+                    )}
+                    <Link href={`/events/${event.id}/share`}>
+                      <Button variant="ghost" size="sm">
+                        Gérer
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>
@@ -221,7 +212,7 @@ export default async function EventDetailPage({
       {/* Upload section */}
       <Card className="mb-8">
         <CardHeader>
-          <h2 className="font-semibold text-gray-900">Ajouter des photos</h2>
+          Ajouter des photos
         </CardHeader>
         <CardContent>
           <PhotoUploader eventId={event.id} />
@@ -232,9 +223,7 @@ export default async function EventDetailPage({
       {photosWithUrls.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="font-semibold text-gray-900">
-              Photos ({photosWithUrls.length})
-            </h2>
+            Photos ({photosWithUrls.length})
           </CardHeader>
           <CardContent>
             <PhotoGrid photos={photosWithUrls} />

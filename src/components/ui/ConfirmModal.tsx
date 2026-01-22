@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Button } from "./Button"
+import { Input } from "./Input"
 
 interface ConfirmModalProps {
   isOpen: boolean
@@ -85,12 +86,12 @@ export function ConfirmModal({
           <div className="flex items-start gap-4">
             <div
               className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-                variant === "danger" ? "bg-red-100" : "bg-yellow-100"
+                variant === "danger" ? "bg-red-50 border-2 border-icc-rouge/20" : "bg-amber-50 border-2 border-amber-200"
               }`}
             >
               <svg
                 className={`w-6 h-6 ${
-                  variant === "danger" ? "text-red-600" : "text-yellow-600"
+                  variant === "danger" ? "text-icc-rouge" : "text-amber-600"
                 }`}
                 fill="none"
                 stroke="currentColor"
@@ -111,7 +112,7 @@ export function ConfirmModal({
               >
                 {title}
               </h2>
-              <p className="text-sm text-gray-600 mt-1">{message}</p>
+              <p className="text-sm text-gray-700 mt-1">{message}</p>
             </div>
           </div>
         </div>
@@ -119,17 +120,16 @@ export function ConfirmModal({
         {/* Confirmation input */}
         {confirmValue && (
           <div className="px-6 pb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tapez <span className="font-mono bg-gray-100 px-1 rounded">{confirmValue}</span> pour confirmer
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Tapez <span className="font-mono bg-icc-violet-light text-icc-violet px-2 py-0.5 rounded">{confirmValue}</span> pour confirmer
             </label>
-            <input
+            <Input
               ref={inputRef}
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={confirmPlaceholder}
               disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:opacity-50"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && canConfirm) {
                   handleConfirm()
@@ -140,7 +140,7 @@ export function ConfirmModal({
         )}
 
         {/* Actions */}
-        <div className="px-6 py-4 bg-gray-50 flex gap-3 justify-end">
+        <div className="px-6 py-4 bg-icc-violet-light/30 flex gap-3 justify-end">
           <Button
             variant="secondary"
             onClick={onClose}

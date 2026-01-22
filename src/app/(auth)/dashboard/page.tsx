@@ -2,23 +2,16 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { Card, CardContent, Button } from "@/components/ui"
+import { Card, CardContent, Button, Badge } from "@/components/ui"
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters"
 
 type EventStatus = "DRAFT" | "PENDING_REVIEW" | "REVIEWED" | "ARCHIVED"
 
-const statusLabels: Record<EventStatus, string> = {
-  DRAFT: "Brouillon",
-  PENDING_REVIEW: "En attente",
-  REVIEWED: "Validé",
-  ARCHIVED: "Archivé",
-}
-
-const statusColors: Record<EventStatus, string> = {
-  DRAFT: "bg-gray-100 text-gray-700",
-  PENDING_REVIEW: "bg-yellow-100 text-yellow-700",
-  REVIEWED: "bg-green-100 text-green-700",
-  ARCHIVED: "bg-blue-100 text-blue-700",
+const statusConfig: Record<EventStatus, { label: string; variant: "default" | "warning" | "success" | "info" }> = {
+  DRAFT: { label: "Brouillon", variant: "default" },
+  PENDING_REVIEW: { label: "En attente", variant: "warning" },
+  REVIEWED: { label: "Validé", variant: "success" },
+  ARCHIVED: { label: "Archivé", variant: "info" },
 }
 
 export default async function DashboardPage({
@@ -90,8 +83,8 @@ export default async function DashboardPage({
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mes événements</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-icc-violet">Mes événements</h1>
+          <p className="text-gray-700 mt-1">
             Gérez vos événements et validez les photos
           </p>
         </div>
@@ -122,9 +115,9 @@ export default async function DashboardPage({
       {eventsWithStats.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 mx-auto bg-icc-violet-light rounded-full flex items-center justify-center mb-4">
               <svg
-                className="w-8 h-8 text-gray-400"
+                className="w-8 h-8 text-icc-violet"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -137,10 +130,10 @@ export default async function DashboardPage({
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Aucun événement
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-700 mb-6">
               Créez votre premier événement pour commencer à uploader des photos.
             </p>
             <Link href="/events/new">
@@ -152,26 +145,24 @@ export default async function DashboardPage({
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {eventsWithStats.map((event) => (
             <Link key={event.id} href={`/events/${event.id}`}>
-              <Card className="hover:border-blue-300 hover:shadow-md transition-all cursor-pointer h-full">
+              <Card className="hover:border-icc-violet/60 hover:shadow-lg transition-all cursor-pointer h-full">
                 <CardContent className="p-6">
                   {/* Status badge */}
                   <div className="flex justify-between items-start mb-3">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[event.status as EventStatus]}`}
-                    >
-                      {statusLabels[event.status as EventStatus]}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {event._count.photos} photos
+                    <Badge variant={statusConfig[event.status as EventStatus].variant} size="sm">
+                      {statusConfig[event.status as EventStatus].label}
+                    </Badge>
+                    <span className="text-sm font-medium text-gray-600">
+                      {event._count.photos} photo{event._count.photos > 1 ? "s" : ""}
                     </span>
                   </div>
 
                   {/* Event info */}
-                  <h3 className="font-semibold text-gray-900 mb-1">
+                  <h3 className="font-semibold text-gray-900 mb-1 text-lg">
                     {event.name}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-3">{event.church.name}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-icc-violet font-medium mb-3">{event.church.name}</p>
+                  <p className="text-sm text-gray-600">
                     {new Date(event.date).toLocaleDateString("fr-FR", {
                       weekday: "long",
                       year: "numeric",
@@ -182,22 +173,22 @@ export default async function DashboardPage({
 
                   {/* Stats */}
                   {event._count.photos > 0 && (
-                    <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100">
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 rounded-full bg-green-500" />
-                        <span className="text-xs text-gray-600">
+                    <div className="flex gap-4 mt-4 pt-4 border-t border-icc-violet/10">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                        <span className="text-xs font-medium text-gray-700">
                           {event.approvedCount}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 rounded-full bg-red-500" />
-                        <span className="text-xs text-gray-600">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-icc-rouge" />
+                        <span className="text-xs font-medium text-gray-700">
                           {event.rejectedCount}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                        <span className="text-xs text-gray-600">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-icc-jaune-dark" />
+                        <span className="text-xs font-medium text-gray-700">
                           {event.pendingCount}
                         </span>
                       </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
+import { Select } from "@/components/ui"
 
 type Church = {
   id: string
@@ -43,18 +44,15 @@ export function DashboardFilters({ churches }: { churches: Church[] }) {
   const hasActiveFilters = currentChurchId || currentStatus
 
   return (
-    <div className="mb-6 p-4 bg-white border border-gray-200 rounded-lg">
+    <div className="mb-6 p-5 bg-white border-2 border-icc-violet/20 rounded-xl shadow-sm">
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Church filter */}
         <div className="flex-1">
-          <label htmlFor="church-filter" className="block text-sm font-medium text-gray-700 mb-1">
-            Église
-          </label>
-          <select
+          <Select
             id="church-filter"
+            label="Église"
             value={currentChurchId}
             onChange={(e) => updateFilters("churchId", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
           >
             <option value="">Toutes les églises</option>
             {churches.map((church) => (
@@ -62,26 +60,23 @@ export function DashboardFilters({ churches }: { churches: Church[] }) {
                 {church.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* Status filter */}
         <div className="flex-1">
-          <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
-            Statut
-          </label>
-          <select
+          <Select
             id="status-filter"
+            label="Statut"
             value={currentStatus}
             onChange={(e) => updateFilters("status", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
           >
             {statusOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* Clear filters button */}
@@ -89,7 +84,7 @@ export function DashboardFilters({ churches }: { churches: Church[] }) {
           <div className="flex items-end">
             <button
               onClick={clearFilters}
-              className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors whitespace-nowrap"
+              className="px-4 py-2.5 text-sm font-medium text-icc-violet hover:text-white hover:bg-icc-violet-light hover:bg-icc-violet rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Réinitialiser
             </button>

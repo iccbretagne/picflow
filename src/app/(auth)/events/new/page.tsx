@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, Button } from "@/components/ui"
+import { Card, CardContent, CardHeader, Button, Input, Select, Textarea } from "@/components/ui"
 import type { ChurchResponse } from "@/lib/schemas"
 
 export default function NewEventPage() {
@@ -68,7 +68,7 @@ export default function NewEventPage() {
       {/* Back link */}
       <Link
         href="/dashboard"
-        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
+        className="inline-flex items-center text-sm text-icc-violet hover:text-icc-violet-dark font-medium mb-6 transition-colors"
       >
         <svg
           className="w-4 h-4 mr-1"
@@ -88,115 +88,88 @@ export default function NewEventPage() {
 
       <Card>
         <CardHeader>
-          <h1 className="text-xl font-semibold text-gray-900">
-            Nouvel événement
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Créez un événement pour commencer à uploader des photos
-          </p>
+          Nouvel événement
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <p className="text-sm text-gray-700 mb-6">
+            Créez un événement pour commencer à uploader des photos
+          </p>
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              <div className="p-4 bg-red-50 border-2 border-icc-rouge/20 rounded-lg text-icc-rouge text-sm flex items-start gap-2">
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
                 {error}
               </div>
             )}
 
             {/* Name */}
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Nom de l'événement *
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                required
-                maxLength={255}
-                placeholder="Ex: Culte du 19 janvier"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+            <Input
+              id="name"
+              name="name"
+              label="Nom de l'événement"
+              type="text"
+              required
+              maxLength={255}
+              placeholder="Ex: Culte du 19 janvier"
+            />
 
             {/* Date */}
-            <div>
-              <label
-                htmlFor="date"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Date *
-              </label>
-              <input
-                type="datetime-local"
-                id="date"
-                name="date"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+            <Input
+              id="date"
+              name="date"
+              label="Date"
+              type="datetime-local"
+              required
+            />
 
             {/* Church */}
-            <div>
-              <label
-                htmlFor="churchId"
-                className="block text-sm font-medium text-gray-700 mb-1"
+            {loadingChurches ? (
+              <div className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                Chargement...
+              </div>
+            ) : churches.length === 0 ? (
+              <div className="space-y-3">
+                <div className="w-full px-4 py-3 border-2 border-amber-300 bg-amber-50 rounded-lg text-amber-700 text-sm flex items-start gap-2">
+                  <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Aucune église disponible. Créez-en une d'abord.
+                </div>
+                <Link href="/churches">
+                  <Button type="button" variant="secondary" className="w-full">
+                    Gérer les églises
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <Select
+                id="churchId"
+                name="churchId"
+                label="Église"
+                defaultValue=""
+                required
               >
-                Église *
-              </label>
-              {loadingChurches ? (
-                <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
-                  Chargement...
-                </div>
-              ) : churches.length === 0 ? (
-                <div className="space-y-2">
-                  <div className="w-full px-4 py-2 border border-yellow-300 bg-yellow-50 rounded-lg text-yellow-700 text-sm">
-                    Aucune église disponible. Créez-en une d'abord.
-                  </div>
-                  <Link href="/churches">
-                    <Button type="button" variant="secondary" className="w-full">
-                      Gérer les églises
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <select
-                  id="churchId"
-                  name="churchId"
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                >
-                  <option value="">Sélectionnez une église</option>
-                  {churches.map((church) => (
-                    <option key={church.id} value={church.id}>
-                      {church.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
+                <option value="">Sélectionnez une église</option>
+                {churches.map((church) => (
+                  <option key={church.id} value={church.id}>
+                    {church.name}
+                  </option>
+                ))}
+              </Select>
+            )}
 
             {/* Description */}
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                rows={3}
-                maxLength={1000}
-                placeholder="Description optionnelle de l'événement"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-              />
-            </div>
+            <Textarea
+              id="description"
+              name="description"
+              label="Description"
+              rows={3}
+              maxLength={1000}
+              placeholder="Description optionnelle de l'événement"
+            />
 
             {/* Actions */}
             <div className="flex gap-3 pt-4">

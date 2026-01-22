@@ -3,12 +3,35 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Charte graphique ICC */
+  --icc-violet: #5E17EB;
+  --icc-jaune: #FFEB05;
+  --icc-rouge: #FF3131;
+  --icc-bleu: #38B6FF;
+
+  /* Variantes pour accessibilité */
+  --icc-violet-dark: #4a12bb;
+  --icc-violet-light: #f3edff;
+  --icc-jaune-dark: #d4c504;
 }
 
 @theme inline {
+  /* Couleurs système */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+
+  /* Couleurs ICC - utilisables avec text-icc-violet, bg-icc-jaune, etc. */
+  --color-icc-violet: var(--icc-violet);
+  --color-icc-violet-dark: var(--icc-violet-dark);
+  --color-icc-violet-light: var(--icc-violet-light);
+  --color-icc-jaune: var(--icc-jaune);
+  --color-icc-jaune-dark: var(--icc-jaune-dark);
+  --color-icc-rouge: var(--icc-rouge);
+  --color-icc-bleu: var(--icc-bleu);
+
+  /* Polices */
+  --font-sans: var(--font-montserrat);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -22,5 +45,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-montserrat), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }

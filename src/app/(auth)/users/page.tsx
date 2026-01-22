@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button, Card, CardContent } from "@/components/ui"
+import { Button, Card, CardContent, Badge, Select } from "@/components/ui"
 import type { UserResponse, UserRole, UserStatus } from "@/lib/schemas"
 
 const roleLabels: Record<UserRole, string> = {
@@ -9,16 +9,10 @@ const roleLabels: Record<UserRole, string> = {
   MEDIA: "Équipe média",
 }
 
-const statusLabels: Record<UserStatus, string> = {
-  PENDING: "En attente",
-  ACTIVE: "Actif",
-  REJECTED: "Rejeté",
-}
-
-const statusColors: Record<UserStatus, string> = {
-  PENDING: "bg-yellow-100 text-yellow-700",
-  ACTIVE: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
+const statusConfig: Record<UserStatus, { label: string; variant: "warning" | "success" | "danger" }> = {
+  PENDING: { label: "En attente", variant: "warning" },
+  ACTIVE: { label: "Actif", variant: "success" },
+  REJECTED: { label: "Rejeté", variant: "danger" },
 }
 
 export default function UsersPage() {
@@ -80,56 +74,61 @@ export default function UsersPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Utilisateurs</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-icc-violet">Utilisateurs</h1>
+          <p className="text-gray-700 mt-1">
             Gérez les accès et les rôles des utilisateurs
           </p>
           {pendingCount > 0 && (
-            <p className="text-yellow-600 mt-2 font-medium">
-              {pendingCount} utilisateur(s) en attente d'approbation
-            </p>
+            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border-2 border-amber-200 rounded-lg">
+              <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <span className="text-amber-700 font-medium text-sm">
+                {pendingCount} utilisateur{pendingCount > 1 ? 's' : ''} en attente d'approbation
+              </span>
+            </div>
           )}
         </div>
       </div>
 
       {/* Filters */}
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex flex-wrap gap-2">
         <button
           onClick={() => setFilter("")}
-          className={`px-4 py-2 rounded-lg transition-colors ${
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
             filter === ""
-              ? "bg-blue-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-icc-violet text-white shadow-md"
+              : "bg-white border-2 border-gray-300 text-gray-700 hover:border-icc-violet/40"
           }`}
         >
           Tous
         </button>
         <button
           onClick={() => setFilter("PENDING")}
-          className={`px-4 py-2 rounded-lg transition-colors ${
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
             filter === "PENDING"
-              ? "bg-yellow-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-amber-500 text-white shadow-md"
+              : "bg-white border-2 border-gray-300 text-gray-700 hover:border-amber-300"
           }`}
         >
           En attente
         </button>
         <button
           onClick={() => setFilter("ACTIVE")}
-          className={`px-4 py-2 rounded-lg transition-colors ${
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
             filter === "ACTIVE"
-              ? "bg-green-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-green-500 text-white shadow-md"
+              : "bg-white border-2 border-gray-300 text-gray-700 hover:border-green-300"
           }`}
         >
           Actifs
         </button>
         <button
           onClick={() => setFilter("REJECTED")}
-          className={`px-4 py-2 rounded-lg transition-colors ${
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
             filter === "REJECTED"
-              ? "bg-red-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-icc-rouge text-white shadow-md"
+              : "bg-white border-2 border-gray-300 text-gray-700 hover:border-icc-rouge/40"
           }`}
         >
           Rejetés
@@ -138,7 +137,10 @@ export default function UsersPage() {
 
       {/* Users list */}
       {error && (
-        <div className="p-4 mb-6 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div className="p-4 mb-6 bg-red-50 border-2 border-icc-rouge/20 rounded-lg text-icc-rouge flex items-start gap-2">
+          <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
           {error}
         </div>
       )}
@@ -146,8 +148,13 @@ export default function UsersPage() {
       <div className="space-y-4">
         {users.length === 0 ? (
           <Card>
-            <CardContent className="p-12 text-center text-gray-500">
-              Aucun utilisateur trouvé
+            <CardContent className="p-12 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-icc-violet-light flex items-center justify-center">
+                <svg className="w-8 h-8 text-icc-violet" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <p className="text-gray-700 font-medium">Aucun utilisateur trouvé</p>
             </CardContent>
           </Card>
         ) : (
@@ -168,19 +175,15 @@ export default function UsersPage() {
                         <h3 className="text-lg font-semibold text-gray-900">
                           {user.name || user.email}
                         </h3>
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            statusColors[user.status]
-                          }`}
-                        >
-                          {statusLabels[user.status]}
-                        </span>
+                        <Badge variant={statusConfig[user.status].variant} size="sm">
+                          {statusConfig[user.status].label}
+                        </Badge>
                       </div>
-                      <p className="text-sm text-gray-600">{user.email}</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {roleLabels[user.role]} • {user._count?.events || 0} événement(s)
+                      <p className="text-sm text-gray-700">{user.email}</p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {roleLabels[user.role]} • {user._count?.events || 0} événement{(user._count?.events || 0) > 1 ? 's' : ''}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-gray-500 mt-1">
                         Inscrit le{" "}
                         {new Date(user.createdAt).toLocaleDateString("fr-FR", {
                           year: "numeric",
@@ -204,10 +207,9 @@ export default function UsersPage() {
                           Approuver
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="danger"
                           size="sm"
                           onClick={() => updateUser(user.id, { status: "REJECTED" })}
-                          className="text-red-600 hover:text-red-700"
                         >
                           Rejeter
                         </Button>
@@ -224,10 +226,9 @@ export default function UsersPage() {
                     )}
                     {user.status === "ACTIVE" && (
                       <Button
-                        variant="ghost"
+                        variant="danger"
                         size="sm"
                         onClick={() => updateUser(user.id, { status: "REJECTED" })}
-                        className="text-red-600 hover:text-red-700"
                       >
                         Révoquer
                       </Button>
@@ -235,16 +236,16 @@ export default function UsersPage() {
 
                     {/* Role toggle */}
                     {user.status === "ACTIVE" && (
-                      <select
+                      <Select
                         value={user.role}
                         onChange={(e) =>
                           updateUser(user.id, { role: e.target.value as UserRole })
                         }
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="text-sm"
                       >
                         <option value="ADMIN">Administrateur</option>
                         <option value="MEDIA">Équipe média</option>
-                      </select>
+                      </Select>
                     )}
                   </div>
                 </div>

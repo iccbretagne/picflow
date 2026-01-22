@@ -1,5 +1,13 @@
 import type { Metadata, Viewport } from "next"
+import { Montserrat } from "next/font/google"
 import "./globals.css"
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-montserrat",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "PicFlow - Photo Validation",
@@ -21,7 +29,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#3b82f6",
+  themeColor: "#5E17EB", // Violet ICC
 }
 
 export default function RootLayout({
@@ -31,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className="font-sans antialiased bg-gray-50">
+      <body className={`${montserrat.variable} font-sans antialiased bg-gray-50`}>
         {children}
       </body>
     </html>
