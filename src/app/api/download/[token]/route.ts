@@ -32,7 +32,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Filter only approved photos
-    const approvedPhotos = event.photos.filter((p) => p.status === "APPROVED")
+    const approvedPhotos = event.photos.filter(
+      (p: { status: "PENDING" | "APPROVED" | "REJECTED" }) =>
+        p.status === "APPROVED"
+    )
 
     // Generate signed URLs
     const photosWithUrls = await Promise.all(
