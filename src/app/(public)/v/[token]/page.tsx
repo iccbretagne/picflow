@@ -350,7 +350,7 @@ export default function ValidationPage() {
         </div>
 
         {/* Submit button */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 pt-4" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
           <Button
             onClick={submit}
             loading={submitting}
@@ -446,7 +446,7 @@ export default function ValidationPage() {
       )}
 
       {/* Actions */}
-      <div className="bg-black/80 px-4 py-6 flex items-center justify-center gap-8">
+      <div className="bg-black/80 px-4 pt-6 flex items-center justify-center gap-8" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <button
           onClick={() => makeDecision("REJECTED")}
           className="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center text-2xl hover:bg-red-600 transition-colors"
@@ -475,7 +475,7 @@ export default function ValidationPage() {
 
       {/* Undo toast */}
       {undoAction && (
-        <div className="fixed bottom-24 left-4 right-4 bg-gray-800 text-white rounded-lg px-4 py-3 flex items-center justify-between">
+        <div className="fixed left-4 right-4 bg-gray-800 text-white rounded-lg px-4 py-3 flex items-center justify-between" style={{ bottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
           <span>
             {decisions.get(undoAction.photoId) === "APPROVED" ? "Validée" : "Rejetée"}
           </span>
