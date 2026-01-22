@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { Card, CardContent, Button } from "@/components/ui"
+import type { Prisma } from "@prisma/client"
 
 type EventStatus = "DRAFT" | "PENDING_REVIEW" | "REVIEWED" | "ARCHIVED"
 
@@ -27,7 +28,11 @@ export default async function DashboardPage() {
     redirect("/")
   }
 
-  const events = await prisma.event.findMany({
+  type EventWithPhotos = Prisma.EventGetPayload<{
+    include: { _count: { select: { photos: true } }; photos: { select: { status: true } } }
+  }>
+
+  const events: EventWithPhotos[] = await prisma.event.findMany({
     where: { createdById: session.user.id },
     orderBy: { date: "desc" },
     include: {
