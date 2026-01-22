@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "PicFlow - Photo Validation",
   description: "Photo validation workflow for church media teams",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon", // Route dynamique
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

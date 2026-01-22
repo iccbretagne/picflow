@@ -176,6 +176,22 @@ model ZipJob {
 }
 
 // ============================================
+// PARAMÈTRES APPLICATION
+// ============================================
+
+model AppSettings {
+  id              String   @id @default("default") // Ligne unique avec ID fixe
+  logoKey         String?  @db.VarChar(512) // Clé S3 du logo
+  faviconKey      String?  @db.VarChar(512) // Clé S3 du favicon
+  logoFilename    String?  @db.VarChar(255)
+  faviconFilename String?  @db.VarChar(255)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
 // NEXTAUTH (tables requises)
 // ============================================
 

@@ -29,6 +29,7 @@ const BUCKET = process.env.S3_BUCKET!
 const THUMBNAIL_URL_EXPIRY = 3600 // 1 hour
 const ORIGINAL_URL_EXPIRY = 300 // 5 minutes
 const DOWNLOAD_URL_EXPIRY = 600 // 10 minutes
+const LOGO_URL_EXPIRY = 86400 // 24 hours
 
 // ============================================
 // KEY GENERATION
@@ -44,6 +45,17 @@ export function getThumbnailKey(eventId: string, photoId: string) {
 
 export function getZipKey(eventId: string, jobId: string) {
   return `events/${eventId}/zips/${jobId}.zip`
+}
+
+export function getLogoKey(variant: "original" | "header" | "login"): string {
+  return `settings/logo-${variant}.png`
+}
+
+export function getFaviconKey(
+  variant: "original" | "ico" | "png192" | "png512"
+): string {
+  if (variant === "ico") return "settings/favicon.ico"
+  return `settings/favicon-${variant}.png`
 }
 
 // ============================================
@@ -89,6 +101,11 @@ export async function getSignedDownloadUrl(
     ResponseContentDisposition: `attachment; filename="${filename}"`,
   })
   return getSignedUrl(s3Client, command, { expiresIn: DOWNLOAD_URL_EXPIRY })
+}
+
+export async function getSignedLogoUrl(key: string): Promise<string> {
+  const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+  return getSignedUrl(s3Client, command, { expiresIn: LOGO_URL_EXPIRY })
 }
 
 // ============================================

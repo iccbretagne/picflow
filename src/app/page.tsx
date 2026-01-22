@@ -1,6 +1,7 @@
 import { auth, signIn } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui"
+import { LoginLogo } from "@/components/layout/LoginLogo"
 
 export default async function HomePage() {
   const session = await auth()
@@ -14,27 +15,7 @@ export default async function HomePage() {
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
         {/* Logo */}
-        <div className="mb-8">
-          <div className="w-20 h-20 mx-auto bg-blue-600 rounded-2xl flex items-center justify-center mb-4">
-            <svg
-              className="w-12 h-12 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">PicFlow</h1>
-          <p className="text-gray-600 mt-2">
-            Validation de photos simple et rapide
-          </p>
-        </div>
+        <LoginLogo />
 
         {/* Login form */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">

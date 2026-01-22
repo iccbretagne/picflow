@@ -1,4 +1,5 @@
 import sharp from "sharp"
+import pngToIco from "png-to-ico"
 
 // ============================================
 // IMAGE PROCESSING RESULT
@@ -62,6 +63,69 @@ export async function processImage(buffer: Buffer): Promise<ProcessedImage> {
       format: metadata.format,
     },
   }
+}
+
+// ============================================
+// LOGO PROCESSING
+// ============================================
+
+export interface ProcessedLogo {
+  original: Buffer
+  header: Buffer // 200px height for admin header
+  login: Buffer // 300px height for login page
+}
+
+export async function processLogo(buffer: Buffer): Promise<ProcessedLogo> {
+  const image = sharp(buffer)
+
+  // Header logo: 200px height, maintain aspect ratio
+  const header = await image
+    .clone()
+    .resize(null, 200, { withoutEnlargement: true, fit: "inside" })
+    .png({ quality: 100, compressionLevel: 9 })
+    .toBuffer()
+
+  // Login logo: 300px height, maintain aspect ratio
+  const login = await image
+    .clone()
+    .resize(null, 300, { withoutEnlargement: true, fit: "inside" })
+    .png({ quality: 100, compressionLevel: 9 })
+    .toBuffer()
+
+  // Original: preserve as-is for future re-processing
+  const original = await image.png({ quality: 100 }).toBuffer()
+
+  return { header, login, original }
+}
+
+// ============================================
+// FAVICON PROCESSING
+// ============================================
+
+export interface ProcessedFavicon {
+  ico: Buffer // Multi-size .ico (16x16, 32x32)
+  png192: Buffer // 192x192 for PWA manifest
+  png512: Buffer // 512x512 for PWA manifest
+  original: Buffer
+}
+
+export async function processFavicon(buffer: Buffer): Promise<ProcessedFavicon> {
+  const image = sharp(buffer)
+
+  // For .ico, we need 16x16 and 32x32 PNGs
+  const icon16 = await image.clone().resize(16, 16).png().toBuffer()
+  const icon32 = await image.clone().resize(32, 32).png().toBuffer()
+
+  // Generate .ico from PNGs using png-to-ico
+  const ico = await pngToIco([icon16, icon32])
+
+  // PWA manifest icons
+  const png192 = await image.clone().resize(192, 192).png().toBuffer()
+  const png512 = await image.clone().resize(512, 512).png().toBuffer()
+
+  const original = await image.png({ quality: 100 }).toBuffer()
+
+  return { ico, png192, png512, original }
 }
 
 // ============================================
