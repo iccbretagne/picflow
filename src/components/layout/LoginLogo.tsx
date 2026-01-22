@@ -24,8 +24,12 @@ export function LoginLogo() {
           alt="PicFlow"
           className="h-32 mx-auto mb-4 object-contain"
         />
-        <h1 className="text-3xl font-bold text-gray-900">PicFlow</h1>
-        <p className="text-gray-600 mt-2">Validation de photos simple et rapide</p>
+        <h1 className="text-3xl font-bold text-[color:var(--foreground)]">
+          PicFlow
+        </h1>
+        <p className="text-[color:var(--foreground)] opacity-70 mt-2">
+          Validation de photos simple et rapide
+        </p>
       </div>
     )
   }
@@ -48,8 +52,12 @@ export function LoginLogo() {
           />
         </svg>
       </div>
-      <h1 className="text-3xl font-bold text-gray-900">PicFlow</h1>
-      <p className="text-gray-600 mt-2">Validation de photos simple et rapide</p>
+      <h1 className="text-3xl font-bold text-[color:var(--foreground)]">
+        PicFlow
+      </h1>
+      <p className="text-[color:var(--foreground)] opacity-70 mt-2">
+        Validation de photos simple et rapide
+      </p>
     </div>
   )
 }

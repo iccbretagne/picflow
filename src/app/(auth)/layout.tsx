@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui"
 import { HeaderLogo } from "@/components/layout/HeaderLogo"
+import { AuthNav } from "@/components/layout/AuthNav"
 
 export default async function AuthLayout({
   children,
@@ -63,36 +64,26 @@ export default async function AuthLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b-2 border-icc-violet/20 shadow-sm">
+      <header className="bg-icc-violet border-b-2 border-icc-violet-dark shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <HeaderLogo />
 
             {/* Navigation */}
-            <div className="flex items-center gap-6">
-              <Link
-                href="/churches"
-                className="text-sm font-medium text-icc-violet hover:text-icc-violet-dark transition-colors"
-              >
-                Églises
-              </Link>
-              <Link
-                href="/users"
-                className="text-sm font-medium text-icc-violet hover:text-icc-violet-dark transition-colors"
-              >
-                Utilisateurs
-              </Link>
-              <Link
-                href="/settings"
-                className="text-sm font-medium text-icc-violet hover:text-icc-violet-dark transition-colors"
-              >
-                Paramètres
-              </Link>
-            </div>
+            <AuthNav />
 
-            {/* User menu */}
+            {/* Actions + User menu */}
             <div className="flex items-center gap-4">
+              <Link href="/events/new">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="bg-white text-icc-violet hover:bg-icc-jaune hover:text-icc-violet"
+                >
+                  Nouvel événement
+                </Button>
+              </Link>
               <div className="flex items-center gap-2">
                 {session.user.image && (
                   <img
@@ -101,7 +92,7 @@ export default async function AuthLayout({
                     className="w-8 h-8 rounded-full"
                   />
                 )}
-                <span className="text-sm text-gray-700 hidden sm:block">
+                <span className="text-sm text-white/90 hidden sm:block">
                   {session.user.name || session.user.email}
                 </span>
               </div>
@@ -111,7 +102,12 @@ export default async function AuthLayout({
                   await signOut({ redirectTo: "/" })
                 }}
               >
-                <Button variant="ghost" size="sm" type="submit">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  type="submit"
+                  className="bg-white/10 text-white hover:bg-white/20"
+                >
                   Déconnexion
                 </Button>
               </form>
