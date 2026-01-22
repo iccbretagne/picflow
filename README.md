@@ -67,6 +67,8 @@ See `.env.example` for all required variables:
 - [Expression de Besoin](./docs/EXPRESSION_BESOIN.md)
 - [Conception Technique](./docs/CONCEPTION_TECHNIQUE.md)
 - [OpenAPI Spec](./docs/openapi.yaml)
+- [Mise en production](./docs/PRODUCTION.md)
+- [Etat des lieux](./docs/STATUS.md)
 - API Documentation: `/docs` (Swagger UI)
 
 ## Workflow
