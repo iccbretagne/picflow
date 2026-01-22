@@ -9,6 +9,31 @@ import { PhotoGrid } from "@/components/photos/PhotoGrid"
 import { EventActions } from "@/components/events"
 
 type EventStatus = "DRAFT" | "PENDING_REVIEW" | "REVIEWED" | "ARCHIVED"
+type PhotoStatus = "PENDING" | "APPROVED" | "REJECTED"
+
+type EventWithRelations = {
+  id: string
+  name: string
+  date: Date
+  church: string
+  description: string | null
+  status: EventStatus
+  photos: {
+    id: string
+    filename: string
+    thumbnailKey: string
+    status: PhotoStatus
+    uploadedAt: Date
+  }[]
+  shareTokens: {
+    id: string
+    type: "VALIDATOR" | "MEDIA"
+    label: string | null
+    expiresAt: Date | null
+    usageCount: number
+    createdAt: Date
+  }[]
+}
 
 const statusLabels: Record<EventStatus, string> = {
   DRAFT: "Brouillon",
@@ -36,7 +61,7 @@ export default async function EventDetailPage({
 
   const { id } = await params
 
-  const event = await prisma.event.findUnique({
+  const event = (await prisma.event.findUnique({
     where: { id, createdById: session.user.id },
     include: {
       photos: {
@@ -46,7 +71,7 @@ export default async function EventDetailPage({
         orderBy: { createdAt: "desc" },
       },
     },
-  })
+  })) as EventWithRelations | null
 
   if (!event) {
     notFound()
