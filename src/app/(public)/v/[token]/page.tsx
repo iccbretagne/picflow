@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams } from "next/navigation"
 import { Button } from "@/components/ui"
 
@@ -41,6 +41,12 @@ export default function ValidationPage() {
   const [showSummary, setShowSummary] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [undoAction, setUndoAction] = useState<{ photoId: string; prevStatus: Decision | null } | null>(null)
+  const [dragX, setDragX] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const [summaryFilter, setSummaryFilter] = useState<"ALL" | "APPROVED" | "REJECTED">("ALL")
+  const pointerIdRef = useRef<number | null>(null)
+  const startXRef = useRef(0)
+  const startYRef = useRef(0)
 
   // Fetch data
   useEffect(() => {
@@ -95,6 +101,15 @@ export default function ValidationPage() {
     },
     [currentPhoto, currentIndex, totalPhotos, decisions]
   )
+
+  const skipPhoto = useCallback(() => {
+    if (!currentPhoto) return
+    if (currentIndex < totalPhotos - 1) {
+      setCurrentIndex((i) => i + 1)
+    } else {
+      setShowSummary(true)
+    }
+  }, [currentPhoto, currentIndex, totalPhotos])
 
   const undo = useCallback(() => {
     if (!undoAction) return
@@ -167,11 +182,56 @@ export default function ValidationPage() {
         makeDecision("REJECTED")
       } else if (e.key === "ArrowRight" || e.key === "v") {
         makeDecision("APPROVED")
+      } else if (e.key === " " || e.key === "ArrowDown") {
+        e.preventDefault()
+        skipPhoto()
       }
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [makeDecision, showSummary])
+  }, [makeDecision, skipPhoto, showSummary])
+
+  useEffect(() => {
+    if (!data || totalPhotos === 0) return
+    if (currentIndex >= totalPhotos) {
+      setShowSummary(true)
+    }
+  }, [data, totalPhotos, currentIndex])
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (showSummary || !currentPhoto) return
+      pointerIdRef.current = e.pointerId
+      startXRef.current = e.clientX
+      startYRef.current = e.clientY
+      setDragging(true)
+      setDragX(0)
+      e.currentTarget.setPointerCapture(e.pointerId)
+    },
+    [showSummary, currentPhoto]
+  )
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!dragging || pointerIdRef.current !== e.pointerId) return
+      const deltaX = e.clientX - startXRef.current
+      const deltaY = e.clientY - startYRef.current
+      if (Math.abs(deltaY) > Math.abs(deltaX)) return
+      setDragX(deltaX)
+    },
+    [dragging]
+  )
+
+  const handlePointerEnd = useCallback(() => {
+    if (!dragging) return
+    const threshold = 80
+    const deltaX = dragX
+    setDragging(false)
+    setDragX(0)
+    pointerIdRef.current = null
+    if (Math.abs(deltaX) < threshold) return
+    makeDecision(deltaX > 0 ? "APPROVED" : "REJECTED")
+  }, [dragging, dragX, makeDecision])
 
   // Loading state
   if (loading) {
@@ -201,15 +261,25 @@ export default function ValidationPage() {
   if (showSummary) {
     const approvedCount = Array.from(decisions.values()).filter((d) => d === "APPROVED").length
     const rejectedCount = Array.from(decisions.values()).filter((d) => d === "REJECTED").length
+    const filteredPhotos = data.photos.filter((photo) => {
+      if (summaryFilter === "ALL") return true
+      return decisions.get(photo.id) === summaryFilter
+    })
 
     return (
       <div className="min-h-screen bg-gray-50 pb-24">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
           <div className="flex items-center justify-between">
-            <button onClick={() => setShowSummary(false)} className="text-blue-600">
-              &larr; Retour
-            </button>
+          <button
+            onClick={() => {
+              setShowSummary(false)
+              setSummaryFilter("ALL")
+            }}
+            className="text-blue-600"
+          >
+            &larr; Retour
+          </button>
             <span className="font-medium">
               {approvedCount}/{totalPhotos} validées
             </span>
@@ -217,21 +287,42 @@ export default function ValidationPage() {
         </header>
 
         {/* Filter tabs */}
-        <div className="bg-white border-b border-gray-200 px-4 py-2 flex gap-2">
-          <button className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">
+        <div className="bg-white border-b border-gray-200 px-4 py-2 flex gap-2 sticky top-[52px] z-10">
+          <button
+            onClick={() => setSummaryFilter("ALL")}
+            className={`px-3 py-1 text-sm rounded-full ${
+              summaryFilter === "ALL"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
             Toutes ({totalPhotos})
           </button>
-          <button className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">
+          <button
+            onClick={() => setSummaryFilter("APPROVED")}
+            className={`px-3 py-1 text-sm rounded-full ${
+              summaryFilter === "APPROVED"
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
             Validées ({approvedCount})
           </button>
-          <button className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-full">
+          <button
+            onClick={() => setSummaryFilter("REJECTED")}
+            className={`px-3 py-1 text-sm rounded-full ${
+              summaryFilter === "REJECTED"
+                ? "bg-red-100 text-red-800"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
             Rejetées ({rejectedCount})
           </button>
         </div>
 
         {/* Grid */}
         <div className="grid grid-cols-3 gap-1 p-1">
-          {data.photos.map((photo) => {
+          {filteredPhotos.map((photo) => {
             const decision = decisions.get(photo.id)
             return (
               <button
@@ -286,15 +377,73 @@ export default function ValidationPage() {
       </header>
 
       {/* Photo */}
-      <div className="flex-1 flex items-center justify-center relative">
+      <div
+        className="flex-1 flex items-center justify-center relative overflow-hidden select-none"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        style={{ touchAction: "pan-y" }}
+      >
         {currentPhoto && (
-          <img
-            src={currentPhoto.thumbnailUrl}
-            alt={currentPhoto.filename}
-            className="max-w-full max-h-full object-contain"
-          />
+          <div
+            className="relative"
+            style={{
+              transform: `translateX(${dragX}px) rotate(${dragX / 20}deg)`,
+              transition: dragging ? "none" : "transform 150ms ease-out",
+            }}
+          >
+            <img
+              src={currentPhoto.thumbnailUrl}
+              alt={currentPhoto.filename}
+              className="max-w-full max-h-full object-contain"
+              draggable={false}
+            />
+            {dragX !== 0 && (
+              <div
+                className={`absolute inset-0 flex items-start ${
+                  dragX > 0 ? "justify-start" : "justify-end"
+                }`}
+                style={{ opacity: Math.min(Math.abs(dragX) / 120, 1) }}
+              >
+                <div
+                  className={`m-6 w-12 h-12 rounded-full flex items-center justify-center text-2xl text-white ${
+                    dragX > 0 ? "bg-green-500" : "bg-red-500"
+                  }`}
+                >
+                  {dragX > 0 ? "✓" : "✗"}
+                </div>
+              </div>
+            )}
+            {dragX === 0 && (
+              <div className="absolute top-4 left-4">
+                {decisions.get(currentPhoto.id) === "APPROVED" ? (
+                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-600 text-white">
+                    Validée
+                  </span>
+                ) : decisions.get(currentPhoto.id) === "REJECTED" ? (
+                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-600 text-white">
+                    Rejetée
+                  </span>
+                ) : (
+                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-700 text-white">
+                    En attente
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
+
+      {data && totalPhotos > 0 && decisions.size === totalPhotos && (
+        <div className="bg-green-600 text-white text-sm px-4 py-2 text-center">
+          Tout est traité.{" "}
+          <button onClick={() => setShowSummary(true)} className="font-semibold underline">
+            Voir le récap
+          </button>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="bg-black/80 px-4 py-6 flex items-center justify-center gap-8">
@@ -303,6 +452,12 @@ export default function ValidationPage() {
           className="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center text-2xl hover:bg-red-600 transition-colors"
         >
           ✗
+        </button>
+        <button
+          onClick={skipPhoto}
+          className="w-12 h-12 rounded-full bg-gray-600 text-white flex items-center justify-center text-sm hover:bg-gray-500 transition-colors"
+        >
+          Passer
         </button>
         <button
           onClick={() => setShowSummary(true)}
