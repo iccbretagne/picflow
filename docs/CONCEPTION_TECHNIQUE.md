@@ -263,8 +263,8 @@ L'API suit une approche **schema-first** avec Zod comme source de vérité :
 **Dépendances clés :**
 ```json
 {
-  "zod": "^4.3.x",
-  "@asteasolutions/zod-to-openapi": "^8.4.x",
+  "zod": "^4.3.5",
+  "@asteasolutions/zod-to-openapi": "^8.4.0",
   "swagger-ui-react": "^5.x"
 }
 ```
