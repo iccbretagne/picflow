@@ -28,9 +28,21 @@ export default async function DashboardPage() {
     redirect("/")
   }
 
-  type EventWithPhotos = Awaited<ReturnType<typeof prisma.event.findMany>>[number]
+  type EventWithPhotos = {
+    id: string
+    name: string
+    createdAt: Date
+    updatedAt: Date
+    date: Date
+    church: string
+    description: string | null
+    status: EventStatus
+    createdById: string
+    photos: { status: "PENDING" | "APPROVED" | "REJECTED" }[]
+    _count: { photos: number }
+  }
 
-  const events: EventWithPhotos[] = await prisma.event.findMany({
+  const events = (await prisma.event.findMany({
     where: { createdById: session.user.id },
     orderBy: { date: "desc" },
     include: {
@@ -41,7 +53,7 @@ export default async function DashboardPage() {
         select: { status: true },
       },
     },
-  })
+  })) as EventWithPhotos[]
 
   const eventsWithStats = events.map((event) => ({
     ...event,
