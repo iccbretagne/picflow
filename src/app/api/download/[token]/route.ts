@@ -14,22 +14,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Accept both VALIDATOR and MEDIA tokens for download
     const shareToken = await validateShareToken(token)
-    const event = shareToken.event as {
-      id: string
-      name: string
-      date: Date
-      church: string
-      photos: {
-        id: string
-        filename: string
-        thumbnailKey: string
-        status: "PENDING" | "APPROVED" | "REJECTED"
-        width: number | null
-        height: number | null
-        uploadedAt: Date
-        validatedAt: Date | null
-      }[]
-    }
+    const event = shareToken.event
 
     // Filter only approved photos
     const approvedPhotos = event.photos.filter(
@@ -56,7 +41,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         id: event.id,
         name: event.name,
         date: event.date.toISOString(),
-        church: event.church,
+        church: event.church.name,
       },
       photos: photosWithUrls,
     })

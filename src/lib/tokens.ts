@@ -34,6 +34,9 @@ export async function validateShareToken(
       event: {
         include: {
           photos: true,
+          church: {
+            select: { name: true },
+          },
         },
       },
     },

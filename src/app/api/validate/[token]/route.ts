@@ -48,7 +48,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         id: event.id,
         name: event.name,
         date: event.date.toISOString(),
-        church: event.church,
+        church: event.church.name,
       },
       photos: photosWithUrls,
       stats,
