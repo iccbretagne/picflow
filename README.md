@@ -80,6 +80,14 @@ See `.env.example` for all required variables:
 3. **Validator** receives the link and reviews photos (swipe UI)
 4. **Media team** downloads approved photos
 
+## Release
+
+Tag releases with the script and record changes in `CHANGELOG.md`.
+
+Example:
+
+  ./scripts/release.sh v0.1.0-beta.3 "Beta iteration"
+
 ## License
 
 MIT - See [LICENSE](./LICENSE)
