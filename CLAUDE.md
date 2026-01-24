@@ -230,4 +230,5 @@ npm run dev
 
 - [Expression de Besoin](./docs/EXPRESSION_BESOIN.md) - Contexte métier complet
 - [Conception Technique](./docs/CONCEPTION_TECHNIQUE.md) - Architecture détaillée
+- [RBAC](./docs/RBAC.md) - Rôles et contrôle d'accès
 - [OpenAPI Spec](./docs/openapi.yaml) - Spec API complète
