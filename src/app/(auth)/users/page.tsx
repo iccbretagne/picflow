@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button, Card, CardContent, Badge, Select } from "@/components/ui"
 import type { UserResponse, UserRole, UserStatus } from "@/lib/schemas"
 
@@ -21,11 +21,8 @@ export default function UsersPage() {
   const [filter, setFilter] = useState<UserStatus | "">("")
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchUsers()
-  }, [filter])
-
-  async function fetchUsers() {
+  const fetchUsers = useCallback(async () => {
+    setLoading(true)
     try {
       const url = filter
         ? `/api/users?status=${filter}`
@@ -38,7 +35,11 @@ export default function UsersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filter])
+
+  useEffect(() => {
+    fetchUsers()
+  }, [fetchUsers])
 
   async function updateUser(id: string, updates: { role?: UserRole; status?: UserStatus }) {
     try {
@@ -84,7 +85,7 @@ export default function UsersPage() {
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
               <span className="text-amber-700 font-medium text-sm">
-                {pendingCount} utilisateur{pendingCount > 1 ? 's' : ''} en attente d'approbation
+                {pendingCount} utilisateur{pendingCount > 1 ? "s" : ""} en attente d&apos;approbation
               </span>
             </div>
           )}

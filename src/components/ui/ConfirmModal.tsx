@@ -17,7 +17,12 @@ interface ConfirmModalProps {
   loading?: boolean
 }
 
-export function ConfirmModal({
+export function ConfirmModal(props: ConfirmModalProps) {
+  if (!props.isOpen) return null
+  return <ConfirmModalContent {...props} />
+}
+
+function ConfirmModalContent({
   isOpen,
   onClose,
   onConfirm,
@@ -35,14 +40,13 @@ export function ConfirmModal({
 
   const canConfirm = !confirmValue || inputValue === confirmValue
 
-  // Reset input when modal opens/closes
+  // Focus input after a short delay for animation
   useEffect(() => {
-    if (isOpen) {
-      setInputValue("")
-      // Focus input after a short delay for animation
-      setTimeout(() => inputRef.current?.focus(), 100)
+    if (confirmValue) {
+      const timeout = setTimeout(() => inputRef.current?.focus(), 100)
+      return () => clearTimeout(timeout)
     }
-  }, [isOpen])
+  }, [confirmValue])
 
   // Handle escape key
   useEffect(() => {
@@ -66,8 +70,6 @@ export function ConfirmModal({
     if (!canConfirm || loading) return
     await onConfirm()
   }
-
-  if (!isOpen) return null
 
   return (
     <div

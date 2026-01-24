@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
+import { useState, useEffect, use, useCallback } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, Button } from "@/components/ui"
 
@@ -45,11 +45,8 @@ export default function SharePage({
   const [formLabel, setFormLabel] = useState("")
   const [formExpires, setFormExpires] = useState("7")
 
-  useEffect(() => {
-    fetchTokens()
-  }, [eventId])
-
-  async function fetchTokens() {
+  const fetchTokens = useCallback(async () => {
+    setLoading(true)
     try {
       const res = await fetch(`/api/events/${eventId}/share`)
       const data = await res.json()
@@ -61,7 +58,11 @@ export default function SharePage({
     } finally {
       setLoading(false)
     }
-  }
+  }, [eventId])
+
+  useEffect(() => {
+    fetchTokens()
+  }, [fetchTokens])
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -142,7 +143,7 @@ export default function SharePage({
             d="M15 19l-7-7 7-7"
           />
         </svg>
-        Retour à l'événement
+        Retour à l&apos;événement
       </Link>
 
       {/* Header */}
@@ -298,7 +299,7 @@ export default function SharePage({
             </h3>
             <p className="text-gray-600 mb-6">
               Créez un lien pour partager cet événement avec des validateurs ou
-              l'équipe média.
+              l&apos;équipe média.
             </p>
             {!showForm && (
               <Button onClick={() => setShowForm(true)}>Créer un lien</Button>

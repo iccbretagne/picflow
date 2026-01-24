@@ -1,6 +1,6 @@
 "use client"
 
-import { forwardRef, SelectHTMLAttributes, useEffect, useState } from "react"
+import { forwardRef, SelectHTMLAttributes, useId, useState } from "react"
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
@@ -24,16 +24,14 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     },
     ref
   ) => {
-    const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`
-    const [isPlaceholder, setIsPlaceholder] = useState(
-      value === "" || defaultValue === ""
+    const autoId = useId()
+    const selectId = id ?? `select-${autoId}`
+    const isControlled = value !== undefined
+    const [internalValue, setInternalValue] = useState(
+      (defaultValue as string | undefined) ?? ""
     )
-
-    useEffect(() => {
-      if (value !== undefined) {
-        setIsPlaceholder(value === "")
-      }
-    }, [value])
+    const currentValue = isControlled ? value : internalValue
+    const isPlaceholder = currentValue === ""
 
     return (
       <div className="w-full">
@@ -59,10 +57,11 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             }
             disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500
             ${className}`}
-          value={value}
-          defaultValue={defaultValue}
+          value={currentValue}
           onChange={(e) => {
-            setIsPlaceholder(e.target.value === "")
+            if (!isControlled) {
+              setInternalValue(e.target.value)
+            }
             onChange?.(e)
           }}
           {...props}

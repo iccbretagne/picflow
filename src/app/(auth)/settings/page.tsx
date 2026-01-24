@@ -11,7 +11,7 @@ export default function SettingsPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-icc-violet mb-2">Paramètres</h1>
       <p className="text-gray-700 mb-8">
-        Personnalisez l'apparence de votre application
+        Personnalisez l&apos;apparence de votre application
       </p>
 
       <div className="space-y-6">
@@ -19,7 +19,7 @@ export default function SettingsPage() {
         <section className="bg-white rounded-xl shadow-sm border-2 border-icc-violet/20 p-6">
           <h2 className="text-xl font-semibold text-icc-violet mb-2">Logo</h2>
           <p className="text-sm text-gray-700 mb-6">
-            Le logo s'affiche dans l'en-tête de l'interface admin et sur la page
+            Le logo s&apos;affiche dans l&apos;en-tête de l&apos;interface admin et sur la page
             de connexion
           </p>
           <LogoUploader />
@@ -29,7 +29,7 @@ export default function SettingsPage() {
         <section className="bg-white rounded-xl shadow-sm border-2 border-icc-violet/20 p-6">
           <h2 className="text-xl font-semibold text-icc-violet mb-2">Favicon</h2>
           <p className="text-sm text-gray-700 mb-6">
-            L'icône qui apparaît dans l'onglet du navigateur
+            L&apos;icône qui apparaît dans l&apos;onglet du navigateur
           </p>
           <FaviconUploader />
         </section>
