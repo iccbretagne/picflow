@@ -63,7 +63,12 @@ if git rev-parse "$tag" >/dev/null 2>&1; then
 fi
 
 if [ -f "CHANGELOG.md" ] && [ "$skip_changelog" = false ]; then
-  if ! rg -n "^## \\\[$tag\\\]" CHANGELOG.md >/dev/null 2>&1; then
+  if command -v rg >/dev/null 2>&1; then
+    check_cmd=(rg -n "^## \\[$tag\\]" CHANGELOG.md)
+  else
+    check_cmd=(grep -E "^## \\[$tag\\]" CHANGELOG.md)
+  fi
+  if ! "${check_cmd[@]}" >/dev/null 2>&1; then
     echo "Missing entry in CHANGELOG.md for $tag." >&2
     echo "Add it or use --skip-changelog." >&2
     exit 1
