@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PATCH /api/churches/[id] - Modifier une église (churches:manage permission)
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    await requirePermission("churches:manage", request)
+    await requirePermission("churches:manage")
     const { id } = await params
 
     const body = await request.json()
@@ -76,7 +76,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/churches/[id] - Supprimer une église (churches:manage permission)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    await requirePermission("churches:manage", request)
+    await requirePermission("churches:manage")
     const { id } = await params
 
     // Vérifier si l'église a des événements

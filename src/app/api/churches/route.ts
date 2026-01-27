@@ -25,7 +25,7 @@ export async function GET() {
 // POST /api/churches - Créer une nouvelle église (churches:manage permission)
 export async function POST(request: NextRequest) {
   try {
-    await requirePermission("churches:manage", request)
+    await requirePermission("churches:manage")
 
     const body = await request.json()
     const validated = CreateChurchSchema.parse(body)

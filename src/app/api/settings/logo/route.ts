@@ -9,7 +9,7 @@ import { LOGO_ALLOWED_TYPES, LOGO_MAX_SIZE } from "@/lib/schemas"
 // POST /api/settings/logo - Upload new logo (settings:manage permission)
 export async function POST(request: NextRequest) {
   try {
-    await requirePermission("settings:manage", request)
+    await requirePermission("settings:manage")
 
     const formData = await request.formData()
     const file = formData.get("file") as File
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 // DELETE /api/settings/logo - Remove logo (settings:manage permission)
 export async function DELETE(request: NextRequest) {
   try {
-    await requirePermission("settings:manage", request)
+    await requirePermission("settings:manage")
 
     const settings = await prisma.appSettings.findUnique({
       where: { id: "default" },

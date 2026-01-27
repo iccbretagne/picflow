@@ -3,7 +3,6 @@ import Google from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "./prisma"
 import { ApiError } from "./api-utils"
-import type { NextRequest } from "next/server"
 import {
   type Permission,
   type Role,
@@ -122,8 +121,8 @@ export async function requireAuth() {
   return session.user
 }
 
-export async function requireAdmin(request?: NextRequest) {
-  const user = await requireAuth(request)
+export async function requireAdmin() {
+  const user = await requireAuth()
 
   if (user.role !== "ADMIN") {
     throw new ApiError(403, "Admin access required", "FORBIDDEN")
@@ -132,8 +131,8 @@ export async function requireAdmin(request?: NextRequest) {
   return user
 }
 
-export async function requirePermission(permission: Permission, request?: NextRequest) {
-  const user = await requireAuth(request)
+export async function requirePermission(permission: Permission) {
+  const user = await requireAuth()
 
   if (!hasPermission(user.role as Role, permission)) {
     throw new ApiError(403, `Permission required: ${permission}`, "FORBIDDEN")
@@ -142,8 +141,8 @@ export async function requirePermission(permission: Permission, request?: NextRe
   return user
 }
 
-export async function requireAnyPermission(permissions: Permission[], request?: NextRequest) {
-  const user = await requireAuth(request)
+export async function requireAnyPermission(permissions: Permission[]) {
+  const user = await requireAuth()
 
   if (!hasAnyPermission(user.role as Role, permissions)) {
     throw new ApiError(403, `One of these permissions required: ${permissions.join(", ")}`, "FORBIDDEN")

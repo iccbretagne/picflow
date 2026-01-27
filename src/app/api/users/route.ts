@@ -11,7 +11,7 @@ import { ListUsersQuerySchema } from "@/lib/schemas"
 // GET /api/users - Liste tous les utilisateurs (users:view permission)
 export async function GET(request: NextRequest) {
   try {
-    await requirePermission("users:view", request)
+    await requirePermission("users:view")
 
     const query = validateQuery(request, ListUsersQuerySchema)
 

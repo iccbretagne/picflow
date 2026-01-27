@@ -16,7 +16,7 @@ type RouteParams = {
 // PATCH /api/users/[id] - Modifier un utilisateur (users:manage permission)
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    await requirePermission("users:manage", request)
+    await requirePermission("users:manage")
     const { id } = validateParams(await params, IdParamSchema)
 
     const body = await request.json()
