@@ -162,3 +162,15 @@ export function getExtensionFromMimeType(mimeType: string): string {
   }
   return extensions[mimeType] || "jpg"
 }
+
+// ============================================
+// THUMBNAIL GENERATION (for media extension)
+// ============================================
+
+export async function generateThumbnail(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer)
+    .rotate() // Auto-rotation based on EXIF
+    .resize(400, 300, { fit: "cover", position: "center" })
+    .webp({ quality: 80 })
+    .toBuffer()
+}

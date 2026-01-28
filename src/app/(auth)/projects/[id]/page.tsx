@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { Card, CardContent, CardHeader, Badge } from "@/components/ui"
 import { ProjectActions } from "@/components/projects"
+import { MediaUploader } from "@/components/media"
 
 type MediaType = "PHOTO" | "VISUAL" | "VIDEO"
 type MediaStatus = "PENDING" | "APPROVED" | "REJECTED" | "DRAFT" | "IN_REVIEW" | "REVISION_REQUESTED" | "FINAL_APPROVED"
@@ -210,30 +211,13 @@ export default async function ProjectDetailPage({
         </Card>
       )}
 
-      {/* Upload section placeholder */}
+      {/* Upload section */}
       <Card className="mb-8">
         <CardHeader>
           Ajouter des médias
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            <svg
-              className="w-12 h-12 mx-auto mb-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
-            </svg>
-            <p className="text-sm">
-              L&apos;upload de médias sera disponible dans une prochaine version.
-            </p>
-          </div>
+          <MediaUploader projectId={project.id} />
         </CardContent>
       </Card>
 

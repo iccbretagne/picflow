@@ -3,6 +3,8 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
+  HeadObjectCommand,
+  CopyObjectCommand,
 } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
@@ -148,6 +150,100 @@ export async function getSignedDownloadUrl(
 export async function getSignedLogoUrl(key: string): Promise<string> {
   const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
   return getSignedUrl(s3Client, command, { expiresIn: LOGO_URL_EXPIRY })
+}
+
+// ============================================
+// PRESIGNED PUT URL (for direct uploads)
+// ============================================
+
+export async function getSignedPutUrl(
+  key: string,
+  contentType: string,
+  maxSize: number,
+  expiresIn: number
+): Promise<string> {
+  const command = new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+    ContentType: contentType,
+  })
+
+  return getSignedUrl(s3Client, command, {
+    expiresIn,
+    signableHeaders: new Set(["content-type"]),
+  })
+}
+
+// ============================================
+// FILE OPERATIONS
+// ============================================
+
+export async function fileExists(key: string): Promise<boolean> {
+  try {
+    await s3Client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }))
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function getFileHead(
+  key: string
+): Promise<{ size: number; contentType: string } | null> {
+  try {
+    const response = await s3Client.send(
+      new HeadObjectCommand({ Bucket: BUCKET, Key: key })
+    )
+    return {
+      size: response.ContentLength ?? 0,
+      contentType: response.ContentType ?? "application/octet-stream",
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function getFileBytes(
+  key: string,
+  start: number,
+  end: number
+): Promise<Buffer | null> {
+  try {
+    const response = await s3Client.send(
+      new GetObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Range: `bytes=${start}-${end}`,
+      })
+    )
+
+    if (!response.Body) {
+      return null
+    }
+
+    const chunks: Uint8Array[] = []
+    for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+      chunks.push(chunk)
+    }
+
+    return Buffer.concat(chunks)
+  } catch {
+    return null
+  }
+}
+
+export async function moveFile(sourceKey: string, destinationKey: string): Promise<void> {
+  // Copy to new location
+  await s3Client.send(
+    new CopyObjectCommand({
+      Bucket: BUCKET,
+      CopySource: `${BUCKET}/${sourceKey}`,
+      Key: destinationKey,
+    })
+  )
+
+  // Delete original
+  await deleteFile(sourceKey)
 }
 
 // ============================================
