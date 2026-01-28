@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Button, Textarea } from "@/components/ui"
 
 type Comment = {
@@ -22,7 +22,7 @@ export function CommentThread({ mediaId }: CommentThreadProps) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function loadComments() {
+  const loadComments = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -37,11 +37,11 @@ export function CommentThread({ mediaId }: CommentThreadProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [mediaId])
 
   useEffect(() => {
     loadComments()
-  }, [mediaId])
+  }, [loadComments])
 
   async function submit() {
     if (!content.trim()) return

@@ -132,23 +132,26 @@ export default function ValidationPage() {
     setUndoAction(null)
   }, [undoAction])
 
-  async function updateMediaStatus(
-    mediaId: string,
-    status: "FINAL_APPROVED" | "REJECTED" | "REVISION_REQUESTED",
-    comment?: string
-  ) {
-    const res = await fetch(`/api/media/${mediaId}/status?token=${token}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, comment }),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      throw new Error(data.error?.message || "Erreur lors de la mise à jour")
-    }
-  }
+  const updateMediaStatus = useCallback(
+    async (
+      mediaId: string,
+      status: "FINAL_APPROVED" | "REJECTED" | "REVISION_REQUESTED",
+      comment?: string
+    ) => {
+      const res = await fetch(`/api/media/${mediaId}/status?token=${token}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, comment }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error?.message || "Erreur lors de la mise à jour")
+      }
+    },
+    [token]
+  )
 
-  async function requestRevision() {
+  const requestRevision = useCallback(async () => {
     if (!currentPhoto) return
     const content = revisionComment.trim()
     if (!content) {
@@ -164,25 +167,28 @@ export default function ValidationPage() {
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erreur lors de la mise à jour")
     }
-  }
+  }, [currentPhoto, revisionComment, updateMediaStatus, makeDecision])
 
-  async function handleDecision(decision: Decision) {
-    if (!currentPhoto) return
+  const handleDecision = useCallback(
+    async (decision: Decision) => {
+      if (!currentPhoto) return
 
-    if (currentPhoto.type !== "PHOTO" && decision !== "REVISION_REQUESTED") {
-      try {
-        await updateMediaStatus(
-          currentPhoto.id,
-          decision === "APPROVED" ? "FINAL_APPROVED" : "REJECTED"
-        )
-      } catch (err) {
-        alert(err instanceof Error ? err.message : "Erreur lors de la mise à jour")
-        return
+      if (currentPhoto.type !== "PHOTO" && decision !== "REVISION_REQUESTED") {
+        try {
+          await updateMediaStatus(
+            currentPhoto.id,
+            decision === "APPROVED" ? "FINAL_APPROVED" : "REJECTED"
+          )
+        } catch (err) {
+          alert(err instanceof Error ? err.message : "Erreur lors de la mise à jour")
+          return
+        }
       }
-    }
 
-    makeDecision(decision)
-  }
+      makeDecision(decision)
+    },
+    [currentPhoto, updateMediaStatus, makeDecision]
+  )
 
   const toggleDecision = useCallback(
     (photoId: string) => {

@@ -170,7 +170,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const token = new URL(request.url).searchParams.get("token")
     let authorId: string | null = null
     let authorName: string | null = null
-    let authorImage: string | null = null
 
     if (token) {
       const { shareToken } = await getMediaForTokenWrite(id, token)
@@ -197,7 +196,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         mediaId: id,
         authorId,
         authorName,
-        authorImage,
       },
       include: {
         author: { select: { name: true, image: true } },
