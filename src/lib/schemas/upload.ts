@@ -49,7 +49,7 @@ export const RequestPresignedUrlSchema = z
 
 export const PresignedUrlResponseSchema = z
   .object({
-    uploadId: z.string().cuid(),
+    uploadId: z.string().cuid2(),
     url: z.string().url(),
     expiresAt: z.string().datetime(),
   })
@@ -61,7 +61,7 @@ export const PresignedUrlResponseSchema = z
 
 export const ConfirmUploadSchema = z
   .object({
-    uploadId: z.string().cuid(),
+    uploadId: z.string().cuid2(),
     thumbnailDataUrl: z
       .string()
       .optional()

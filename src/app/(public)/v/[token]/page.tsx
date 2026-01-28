@@ -6,8 +6,10 @@ import { Button } from "@/components/ui"
 
 interface Photo {
   id: string
+  type: "PHOTO" | "VISUAL" | "VIDEO"
   filename: string
   thumbnailUrl: string
+  originalUrl?: string
   status: "PENDING" | "APPROVED" | "REJECTED"
 }
 
@@ -330,12 +332,25 @@ export default function ValidationPage() {
                 onClick={() => toggleDecision(photo.id)}
                 className="relative aspect-square bg-gray-200"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photo.thumbnailUrl}
-                  alt={photo.filename}
-                  className="w-full h-full object-cover"
-                />
+                {photo.type === "VIDEO" && photo.originalUrl ? (
+                  <video
+                    src={photo.originalUrl}
+                    poster={photo.thumbnailUrl}
+                    className="w-full h-full object-cover"
+                    controls
+                    playsInline
+                    muted
+                  />
+                ) : (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo.thumbnailUrl}
+                      alt={photo.filename}
+                      className="w-full h-full object-cover"
+                    />
+                  </>
+                )}
                 {decision && (
                   <div
                     className={`absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center text-white text-sm ${
@@ -394,13 +409,26 @@ export default function ValidationPage() {
               transition: dragging ? "none" : "transform 150ms ease-out",
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={currentPhoto.thumbnailUrl}
-              alt={currentPhoto.filename}
-              className="max-w-full max-h-full object-contain"
-              draggable={false}
-            />
+            <div className="w-[90vw] h-[70vh]">
+              {currentPhoto.type === "VIDEO" && currentPhoto.originalUrl ? (
+                <video
+                  src={currentPhoto.originalUrl}
+                  className="w-full h-full object-contain"
+                  controls
+                  playsInline
+                />
+              ) : (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={currentPhoto.thumbnailUrl}
+                    alt={currentPhoto.filename}
+                    className="w-full h-full object-contain"
+                    draggable={false}
+                  />
+                </>
+              )}
+            </div>
             {dragX !== 0 && (
               <div
                 className={`absolute inset-0 flex items-start ${

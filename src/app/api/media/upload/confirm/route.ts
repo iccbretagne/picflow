@@ -66,8 +66,15 @@ export async function POST(request: NextRequest) {
       throw new ApiError(400, "File size mismatch", "SIZE_MISMATCH")
     }
 
-    // Validate magic bytes (first 512 bytes)
-    const headerBytes = await getFileBytes(session.s3Key, 0, 511)
+    // Validate magic bytes (first up to 512 bytes)
+    if (session.size === 0) {
+      await deleteFile(session.s3Key)
+      deleteUploadSession(body.uploadId)
+      throw new ApiError(400, "File is empty", "EMPTY_FILE")
+    }
+
+    const headerEnd = Math.min(511, session.size - 1)
+    const headerBytes = await getFileBytes(session.s3Key, 0, headerEnd)
     if (!headerBytes) {
       throw new ApiError(500, "Could not read file header", "READ_ERROR")
     }

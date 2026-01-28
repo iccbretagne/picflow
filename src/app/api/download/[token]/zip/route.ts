@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server"
+import { prisma } from "@/lib/prisma"
 import { validateParams, errorResponse, ApiError } from "@/lib/api-utils"
 import { validateShareToken } from "@/lib/tokens"
 import { getSignedOriginalUrl } from "@/lib/s3"
@@ -15,29 +16,120 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const shareToken = await validateShareToken(token)
     const event = shareToken.event
 
-    // This endpoint only works with event-based tokens
-    if (!event) {
-      throw new ApiError(400, "This token is not associated with an event", "INVALID_TOKEN_TYPE")
+    if (event) {
+      // Filter only approved photos
+      const approvedPhotos = event.photos.filter((p) => p.status === "APPROVED")
+
+      if (approvedPhotos.length === 0) {
+        throw new ApiError(404, "No approved photos to download", "NO_PHOTOS")
+      }
+
+      // Create ZIP archive
+      const archive = archiver("zip", {
+        zlib: { level: 5 }, // Balanced compression
+      })
+
+      // Generate safe filename for ZIP
+      const safeName = event.name
+        .replace(/[^a-zA-Z0-9àâäéèêëïîôùûüç\s-]/gi, "")
+        .replace(/\s+/g, "_")
+        .slice(0, 50)
+      const zipFilename = `${safeName}_photos.zip`
+
+      // Create a readable stream from the archive
+      const stream = new ReadableStream({
+        start(controller) {
+          archive.on("data", (chunk) => {
+            controller.enqueue(chunk)
+          })
+
+          archive.on("end", () => {
+            controller.close()
+          })
+
+          archive.on("error", (err) => {
+            controller.error(err)
+          })
+        },
+      })
+
+      // Add photos to archive
+      const addPhotosToArchive = async () => {
+        for (const photo of approvedPhotos) {
+          try {
+            // Get signed URL for the original photo
+            const url = await getSignedOriginalUrl(photo.originalKey)
+
+            // Fetch the photo
+            const response = await fetch(url)
+            if (!response.ok) {
+              console.error(`Failed to fetch photo ${photo.id}`)
+              continue
+            }
+
+            const buffer = await response.arrayBuffer()
+
+            // Add to archive with original filename
+            archive.append(Buffer.from(buffer), { name: photo.filename })
+          } catch (err) {
+            console.error(`Error adding photo ${photo.id} to ZIP:`, err)
+          }
+        }
+
+        // Finalize the archive
+        await archive.finalize()
+      }
+
+      // Start adding photos (don't await - it runs in parallel with streaming)
+      addPhotosToArchive()
+
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "application/zip",
+          "Content-Disposition": `attachment; filename="${zipFilename}"`,
+        },
+      })
     }
 
-    // Filter only approved photos
-    const approvedPhotos = event.photos.filter((p) => p.status === "APPROVED")
-
-    if (approvedPhotos.length === 0) {
-      throw new ApiError(404, "No approved photos to download", "NO_PHOTOS")
+    if (!shareToken.projectId) {
+      throw new ApiError(400, "This token is not associated with a project", "INVALID_TOKEN_TYPE")
     }
 
-    // Create ZIP archive
-    const archive = archiver("zip", {
-      zlib: { level: 5 }, // Balanced compression
+    const project = await prisma.project.findUnique({
+      where: { id: shareToken.projectId },
+      include: {
+        media: {
+          include: {
+            versions: {
+              orderBy: { versionNumber: "desc" },
+              take: 1,
+            },
+          },
+        },
+      },
     })
 
-    // Generate safe filename for ZIP
-    const safeName = event.name
+    if (!project) {
+      throw new ApiError(404, "Project not found", "NOT_FOUND")
+    }
+
+    const approvedMedia = project.media.filter(
+      (m) => m.status === "APPROVED" || m.status === "FINAL_APPROVED"
+    )
+
+    if (approvedMedia.length === 0) {
+      throw new ApiError(404, "No approved media to download", "NO_MEDIA")
+    }
+
+    const archive = archiver("zip", {
+      zlib: { level: 5 },
+    })
+
+    const safeName = project.name
       .replace(/[^a-zA-Z0-9àâäéèêëïîôùûüç\s-]/gi, "")
       .replace(/\s+/g, "_")
       .slice(0, 50)
-    const zipFilename = `${safeName}_photos.zip`
+    const zipFilename = `${safeName}_media.zip`
 
     // Create a readable stream from the archive
     const stream = new ReadableStream({
@@ -58,24 +150,29 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Add photos to archive
     const addPhotosToArchive = async () => {
-      for (const photo of approvedPhotos) {
+      for (const media of approvedMedia) {
         try {
-          // Get signed URL for the original photo
-          const url = await getSignedOriginalUrl(photo.originalKey)
+          const latestVersion = media.versions[0]
+          if (!latestVersion) {
+            continue
+          }
 
-          // Fetch the photo
+          // Get signed URL for the original media
+          const url = await getSignedOriginalUrl(latestVersion.originalKey)
+
+          // Fetch the media
           const response = await fetch(url)
           if (!response.ok) {
-            console.error(`Failed to fetch photo ${photo.id}`)
+            console.error(`Failed to fetch media ${media.id}`)
             continue
           }
 
           const buffer = await response.arrayBuffer()
 
           // Add to archive with original filename
-          archive.append(Buffer.from(buffer), { name: photo.filename })
+          archive.append(Buffer.from(buffer), { name: media.filename })
         } catch (err) {
-          console.error(`Error adding photo ${photo.id} to ZIP:`, err)
+          console.error(`Error adding media ${media.id} to ZIP:`, err)
         }
       }
 

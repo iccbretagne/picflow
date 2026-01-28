@@ -38,6 +38,7 @@ Ce document synthétise l'état actuel du projet et le reste à faire.
 - **Tokens de partage** : génération, listing, suppression.
 - **Validation** : décisions + recap filtrable + swipe + skip + statut event (passe à REVIEWED si plus de pending).
 - **Stockage S3** : upload original + thumbnail, URLs signées.
+- **Liens publics projets** : tokens VALIDATOR/MEDIA utilisables sur `/v/:token` et `/d/:token`.
 
 ---
 

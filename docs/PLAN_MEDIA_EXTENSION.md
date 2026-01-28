@@ -95,6 +95,9 @@ DRAFT → IN_REVIEW → FINAL_APPROVED
 
 Le flux photo existant (swipe `PENDING → APPROVED/REJECTED`) reste inchangé.
 
+**Partage public projets** :
+- Les tokens `VALIDATOR` / `MEDIA` pour projets doivent fonctionner sur les pages publiques existantes (`/v/:token`, `/d/:token`).
+
 ---
 
 ## 5. Rétention vidéos

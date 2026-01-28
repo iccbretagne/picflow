@@ -1,9 +1,8 @@
-import { randomBytes } from "crypto"
+import { createId } from "@paralleldrive/cuid2"
 import type { MediaType } from "@prisma/client"
 
-// Generate a URL-safe random ID (similar to cuid)
 function generateId(): string {
-  return randomBytes(16).toString("base64url")
+  return createId()
 }
 
 // ============================================

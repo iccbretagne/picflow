@@ -39,7 +39,7 @@ export default function DownloadPage() {
         const response = await res.json()
 
         if (!res.ok) {
-          throw new Error(response.error?.message || "Impossible de charger les photos")
+          throw new Error(response.error?.message || "Impossible de charger les médias")
         }
 
         setData(response.data)
@@ -112,7 +112,7 @@ export default function DownloadPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
-          <p className="text-gray-600 mt-4">Chargement des photos...</p>
+          <p className="text-gray-600 mt-4">Chargement des médias...</p>
         </div>
       </div>
     )
@@ -149,7 +149,7 @@ export default function DownloadPage() {
 
   if (!data) return null
 
-  // No photos state
+  // No media state
   if (data.photos.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -186,10 +186,10 @@ export default function DownloadPage() {
             </svg>
           </div>
           <h2 className="text-lg font-medium text-gray-900 mb-2">
-            Aucune photo disponible
+            Aucun média disponible
           </h2>
           <p className="text-gray-600">
-            Les photos validées apparaîtront ici une fois la validation terminée.
+            Les médias validés apparaîtront ici une fois la validation terminée.
           </p>
         </div>
       </div>
@@ -216,7 +216,7 @@ export default function DownloadPage() {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">
-                {data.photos.length} photo{data.photos.length > 1 ? "s" : ""} disponible{data.photos.length > 1 ? "s" : ""}
+                {data.photos.length} média{data.photos.length > 1 ? "s" : ""} disponible{data.photos.length > 1 ? "s" : ""}
               </span>
               <Button
                 onClick={downloadZip}
