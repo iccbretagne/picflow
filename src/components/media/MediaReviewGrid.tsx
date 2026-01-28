@@ -38,11 +38,16 @@ const statusVariants: Record<MediaStatus, "default" | "warning" | "success" | "i
 }
 
 export function MediaReviewGrid({ media }: MediaReviewGridProps) {
-  const [selected, setSelected] = useState<MediaReviewItem | null>(null)
   const [items, setItems] = useState(media)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const selected = selectedId ? items.find((m) => m.id === selectedId) ?? null : null
 
   function updateStatus(id: string, status: MediaStatus) {
     setItems((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)))
+  }
+
+  function updateMedia(id: string, updates: Partial<MediaReviewItem>) {
+    setItems((prev) => prev.map((m) => (m.id === id ? { ...m, ...updates } : m)))
   }
 
   return (
@@ -51,7 +56,7 @@ export function MediaReviewGrid({ media }: MediaReviewGridProps) {
         {items.map((m) => (
           <button
             key={m.id}
-            onClick={() => setSelected(m)}
+            onClick={() => setSelectedId(m.id)}
             className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden"
           >
             {m.type === "VIDEO" ? (
@@ -82,8 +87,9 @@ export function MediaReviewGrid({ media }: MediaReviewGridProps) {
       {selected && (
         <MediaReviewModal
           media={selected}
-          onClose={() => setSelected(null)}
+          onClose={() => setSelectedId(null)}
           onStatusChange={updateStatus}
+          onMediaUpdate={updateMedia}
         />
       )}
     </>

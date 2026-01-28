@@ -17,7 +17,7 @@ import {
 } from "@/lib/schemas"
 import { ConfirmVersionUploadSchema, RequestVersionUploadSchema } from "@/lib/schemas/version"
 import { createUploadSession, checkRateLimit, deleteUploadSession, getUploadSession } from "@/lib/upload-session"
-import { getSignedPutUrl, getQuarantineKey, getVersionOriginalKey, getVersionThumbnailKey, uploadFile, getSignedThumbnailUrl, fileExists, getFileHead, getFileBytes, deleteFile, moveFile } from "@/lib/s3"
+import { getSignedPutUrl, getQuarantineKey, getVersionOriginalKey, getVersionThumbnailKey, uploadFile, getSignedThumbnailUrl, getSignedOriginalUrl, fileExists, getFileHead, getFileBytes, deleteFile, moveFile } from "@/lib/s3"
 import { validateMagicBytes } from "@/lib/magic-bytes"
 import { generateThumbnail } from "@/lib/sharp"
 
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       filename: body.filename,
       contentType: body.contentType,
       size: body.size,
-      type: body.type,
+      type: media.type,
       eventId: media.eventId ?? undefined,
       projectId: media.projectId ?? undefined,
       s3Key: quarantineKey,
@@ -241,11 +241,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     deleteUploadSession(uploadId)
 
     const thumbnailUrl = await getSignedThumbnailUrl(thumbnailKey)
+    const originalUrl = await getSignedOriginalUrl(originalKey)
 
     return successResponse({
       id: version.id,
       versionNumber: version.versionNumber,
       thumbnailUrl,
+      originalUrl,
     }, 201)
   } catch (error) {
     return errorResponse(error)

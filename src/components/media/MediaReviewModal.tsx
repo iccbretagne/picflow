@@ -28,6 +28,7 @@ interface MediaReviewModalProps {
   media: MediaReviewItem
   onClose: () => void
   onStatusChange: (id: string, status: MediaStatus) => void
+  onMediaUpdate: (id: string, updates: Partial<MediaReviewItem>) => void
 }
 
 const statusLabels: Record<MediaStatus, string> = {
@@ -80,6 +81,7 @@ export function MediaReviewModal({
   media,
   onClose,
   onStatusChange,
+  onMediaUpdate,
 }: MediaReviewModalProps) {
   const [updating, setUpdating] = useState(false)
   const [revisionComment, setRevisionComment] = useState("")
@@ -122,30 +124,42 @@ export function MediaReviewModal({
       const video = document.createElement("video")
       const canvas = document.createElement("canvas")
       const ctx = canvas.getContext("2d")
+      const objectUrl = URL.createObjectURL(file)
 
       video.preload = "metadata"
       video.muted = true
       video.playsInline = true
 
-      video.onloadeddata = () => {
-        video.currentTime = Math.min(1, video.duration * 0.1)
+      video.onloadedmetadata = () => {
+        const targetTime = Math.min(1, Math.max(0.1, video.duration * 0.1))
+        try {
+          video.currentTime = targetTime
+        } catch {
+          reject(new Error("Could not seek video"))
+        }
       }
 
       video.onseeked = () => {
         canvas.width = video.videoWidth
         canvas.height = video.videoHeight
-        ctx?.drawImage(video, 0, 0)
+        if (!ctx || canvas.width === 0 || canvas.height === 0) {
+          URL.revokeObjectURL(objectUrl)
+          reject(new Error("Could not read file header"))
+          return
+        }
+        ctx.drawImage(video, 0, 0)
         const dataUrl = canvas.toDataURL("image/webp", 0.8)
-        URL.revokeObjectURL(video.src)
+        URL.revokeObjectURL(objectUrl)
         resolve(dataUrl)
       }
 
       video.onerror = () => {
-        URL.revokeObjectURL(video.src)
+        URL.revokeObjectURL(objectUrl)
         reject(new Error("Could not load video"))
       }
 
-      video.src = URL.createObjectURL(file)
+      video.src = objectUrl
+      video.load()
     })
   }
 
@@ -193,7 +207,13 @@ export function MediaReviewModal({
 
       let thumbnailDataUrl: string | undefined
       if (media.type === "VIDEO") {
-        thumbnailDataUrl = await extractVideoThumbnail(file)
+        try {
+          thumbnailDataUrl = await extractVideoThumbnail(file)
+        } catch (err) {
+          throw new Error(
+            err instanceof Error ? err.message : "Could not read file header"
+          )
+        }
       }
 
       const confirmRes = await fetch(`/api/media/${media.id}/versions`, {
@@ -211,6 +231,12 @@ export function MediaReviewModal({
       }
 
       onStatusChange(media.id, "IN_REVIEW")
+      if (confirmData.data?.thumbnailUrl || confirmData.data?.originalUrl) {
+        onMediaUpdate(media.id, {
+          thumbnailUrl: confirmData.data.thumbnailUrl ?? media.thumbnailUrl,
+          originalUrl: confirmData.data.originalUrl ?? media.originalUrl,
+        })
+      }
       setVersionNotes("")
       setVersionProgress(0)
     } catch (err) {
@@ -283,7 +309,9 @@ export function MediaReviewModal({
               </div>
 
               {media.type !== "PHOTO" &&
-                (media.status === "REVISION_REQUESTED" || media.status === "REJECTED") && (
+                (media.status === "REVISION_REQUESTED" ||
+                  media.status === "REJECTED" ||
+                  media.status === "IN_REVIEW") && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <label className="text-sm font-medium text-gray-700">
