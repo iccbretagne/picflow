@@ -69,7 +69,7 @@ export const DownloadEventResponseSchema = z
 
 export const CreateZipRequestSchema = z
   .object({
-    photoIds: z.array(z.string().cuid()).optional(),
+    photoIds: z.array(z.string().cuid2()).optional(),
   })
   .openapi("CreateZipRequest")
 

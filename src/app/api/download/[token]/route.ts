@@ -32,24 +32,30 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const event = shareToken.event
 
     if (event) {
-      // Filter only approved photos
-      const approvedPhotos = event.photos.filter(
-        (p: { status: "PENDING" | "APPROVED" | "REJECTED" }) =>
-          p.status === "APPROVED"
-      )
+      const media = await prisma.media.findMany({
+        where: { eventId: event.id, type: "PHOTO", status: "APPROVED" },
+        include: {
+          versions: {
+            orderBy: { versionNumber: "desc" },
+            take: 1,
+          },
+        },
+      })
 
-      // Generate signed URLs
       const photosWithUrls = await Promise.all(
-        approvedPhotos.map(async (photo) => ({
-          id: photo.id,
-          filename: photo.filename,
-          thumbnailUrl: await getSignedThumbnailUrl(photo.thumbnailKey),
-          status: photo.status,
-          width: photo.width,
-          height: photo.height,
-          uploadedAt: photo.uploadedAt.toISOString(),
-          validatedAt: photo.validatedAt?.toISOString() || null,
-        }))
+        media.map(async (m) => {
+          const latest = m.versions[0]
+          return {
+            id: m.id,
+            filename: m.filename,
+            thumbnailUrl: latest ? await getSignedThumbnailUrl(latest.thumbnailKey) : "",
+            status: m.status,
+            width: m.width,
+            height: m.height,
+            uploadedAt: m.createdAt.toISOString(),
+            validatedAt: null,
+          }
+        })
       )
 
       return successResponse({

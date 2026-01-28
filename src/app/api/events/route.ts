@@ -44,9 +44,10 @@ export async function GET(request: NextRequest) {
             select: { name: true },
           },
           _count: {
-            select: { photos: true },
+            select: { media: true },
           },
-          photos: {
+          media: {
+            where: { type: "PHOTO" },
             select: { status: true },
           },
         },
@@ -56,9 +57,9 @@ export async function GET(request: NextRequest) {
 
     // Transform to include stats
     const eventsWithStats = events.map((event) => {
-      const approvedCount = event.photos.filter((p) => p.status === "APPROVED").length
-      const rejectedCount = event.photos.filter((p) => p.status === "REJECTED").length
-      const pendingCount = event.photos.filter((p) => p.status === "PENDING").length
+      const approvedCount = event.media.filter((p) => p.status === "APPROVED").length
+      const rejectedCount = event.media.filter((p) => p.status === "REJECTED").length
+      const pendingCount = event.media.filter((p) => p.status === "PENDING").length
 
       return {
         id: event.id,
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
         status: event.status,
         createdAt: event.createdAt.toISOString(),
         updatedAt: event.updatedAt.toISOString(),
-        photoCount: event._count.photos,
+        photoCount: event.media.length,
         approvedCount,
         rejectedCount,
         pendingCount,

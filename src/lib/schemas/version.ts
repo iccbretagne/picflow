@@ -28,6 +28,23 @@ export const CreateVersionSchema = z
   })
   .openapi("CreateVersionRequest")
 
+export const RequestVersionUploadSchema = z
+  .object({
+    filename: z.string().min(1).max(255).openapi({ example: "v2.mp4" }),
+    contentType: z.string().min(1).max(100).openapi({ example: "video/mp4" }),
+    size: z.number().int().min(1).openapi({ example: 104857600 }),
+    notes: z.string().max(2000).optional(),
+  })
+  .openapi("RequestVersionUploadRequest")
+
+export const ConfirmVersionUploadSchema = z
+  .object({
+    uploadId: z.string().cuid2(),
+    thumbnailDataUrl: z.string().optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .openapi("ConfirmVersionUploadRequest")
+
 export const MediaVersionListSchema = z
   .object({
     versions: z.array(MediaVersionSchema),

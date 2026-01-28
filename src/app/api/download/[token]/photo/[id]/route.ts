@@ -7,7 +7,7 @@ import { z } from "zod"
 
 const ParamsSchema = z.object({
   token: z.string().length(64),
-  id: z.string().cuid(),
+  id: z.string().cuid2(),
 })
 
 type RouteParams = { params: Promise<{ token: string; id: string }> }
@@ -20,27 +20,36 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const shareToken = await validateShareToken(token)
 
     if (shareToken.eventId) {
-      // Find photo
-      const photo = await prisma.photo.findUnique({
+      const media = await prisma.media.findUnique({
         where: { id },
+        include: {
+          versions: {
+            orderBy: { versionNumber: "desc" },
+            take: 1,
+          },
+        },
       })
 
-      if (!photo || photo.eventId !== shareToken.eventId) {
+      if (!media || media.eventId !== shareToken.eventId || media.type !== "PHOTO") {
         throw new ApiError(404, "Photo not found", "NOT_FOUND")
       }
 
-      // Only allow download of approved photos for MEDIA tokens
-      if (shareToken.type === "MEDIA" && photo.status !== "APPROVED") {
+      if (shareToken.type === "MEDIA" && media.status !== "APPROVED") {
         throw new ApiError(403, "Photo not validated", "NOT_APPROVED")
       }
 
-      const url = await getSignedDownloadUrl(photo.originalKey, photo.filename)
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+      const latest = media.versions[0]
+      if (!latest) {
+        throw new ApiError(404, "Photo version not found", "NOT_FOUND")
+      }
+
+      const url = await getSignedDownloadUrl(latest.originalKey, media.filename)
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000)
 
       return successResponse({
         url,
         expiresAt: expiresAt.toISOString(),
-        filename: photo.filename,
+        filename: media.filename,
       })
     }
 

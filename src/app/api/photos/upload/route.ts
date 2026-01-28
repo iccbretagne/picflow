@@ -2,14 +2,15 @@ import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth"
 import { successResponse, errorResponse, ApiError } from "@/lib/api-utils"
-import { uploadFile, getOriginalKey, getThumbnailKey, getSignedThumbnailUrl } from "@/lib/s3"
+import { uploadFile, getMediaOriginalKey, getMediaThumbnailKey, getSignedThumbnailUrl } from "@/lib/s3"
 import { processImage, validateFile, getExtensionFromMimeType } from "@/lib/sharp"
+import { createId } from "@paralleldrive/cuid2"
 
 // POST /api/photos/upload - Upload photos
 // All authenticated users can upload to any event
 export async function POST(request: NextRequest) {
   try {
-    await requireAuth()
+    const user = await requireAuth()
 
     const formData = await request.formData()
     const eventId = formData.get("eventId") as string
@@ -46,24 +47,38 @@ export async function POST(request: NextRequest) {
         // Process image
         const processed = await processImage(buffer)
 
-        // Create photo record
-        const photo = await prisma.photo.create({
-          data: {
-            filename: file.name,
-            originalKey: "", // Will update after upload
-            thumbnailKey: "", // Will update after upload
-            mimeType: file.type,
-            size: file.size,
-            width: processed.metadata.width,
-            height: processed.metadata.height,
-            eventId,
-          },
-        })
+        const mediaId = createId()
 
-        // Generate S3 keys
+        // Generate S3 keys (media photo)
         const extension = getExtensionFromMimeType(file.type)
-        const originalKey = getOriginalKey(eventId, photo.id, extension)
-        const thumbnailKey = getThumbnailKey(eventId, photo.id)
+        const originalKey = getMediaOriginalKey("events", eventId, mediaId, extension)
+        const thumbnailKey = getMediaThumbnailKey("events", eventId, mediaId)
+
+        await prisma.$transaction(async (tx) => {
+          await tx.media.create({
+            data: {
+              id: mediaId,
+              type: "PHOTO",
+              status: "PENDING",
+              filename: file.name,
+              mimeType: file.type,
+              size: file.size,
+              width: processed.metadata.width,
+              height: processed.metadata.height,
+              eventId,
+            },
+          })
+
+          await tx.mediaVersion.create({
+            data: {
+              mediaId,
+              versionNumber: 1,
+              originalKey,
+              thumbnailKey,
+              createdById: user.id,
+            },
+          })
+        })
 
         // Upload to S3
         await Promise.all([
@@ -71,17 +86,11 @@ export async function POST(request: NextRequest) {
           uploadFile(thumbnailKey, processed.thumbnail, "image/webp"),
         ])
 
-        // Update photo with S3 keys
-        await prisma.photo.update({
-          where: { id: photo.id },
-          data: { originalKey, thumbnailKey },
-        })
-
         // Get signed thumbnail URL
         const thumbnailUrl = await getSignedThumbnailUrl(thumbnailKey)
 
         uploaded.push({
-          id: photo.id,
+          id: mediaId,
           filename: file.name,
           thumbnailUrl,
         })

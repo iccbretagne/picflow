@@ -21,12 +21,15 @@ type EventWithRelations = {
   }
   description: string | null
   status: EventStatus
-  photos: {
+  media: {
     id: string
     filename: string
-    thumbnailKey: string
     status: PhotoStatus
-    uploadedAt: Date
+    versions: {
+      thumbnailKey: string
+      versionNumber: number
+    }[]
+    createdAt: Date
   }[]
   shareTokens: {
     id: string
@@ -63,8 +66,15 @@ export default async function EventDetailPage({
       church: {
         select: { name: true },
       },
-      photos: {
-        orderBy: { uploadedAt: "desc" },
+      media: {
+        where: { type: "PHOTO" },
+        orderBy: { createdAt: "desc" },
+        include: {
+          versions: {
+            orderBy: { versionNumber: "desc" },
+            take: 1,
+          },
+        },
       },
       shareTokens: {
         orderBy: { createdAt: "desc" },
@@ -78,17 +88,22 @@ export default async function EventDetailPage({
 
   // Get signed URLs for thumbnails
   const photosWithUrls = await Promise.all(
-    event.photos.map(async (photo) => ({
-      ...photo,
-      thumbnailUrl: await getSignedThumbnailUrl(photo.thumbnailKey),
-    }))
+    event.media.map(async (media) => {
+      const latestVersion = media.versions[0]
+      return {
+        id: media.id,
+        filename: media.filename,
+        status: media.status,
+        thumbnailUrl: latestVersion ? await getSignedThumbnailUrl(latestVersion.thumbnailKey) : "",
+      }
+    })
   )
 
   const stats = {
-    total: event.photos.length,
-    approved: event.photos.filter((p) => p.status === "APPROVED").length,
-    rejected: event.photos.filter((p) => p.status === "REJECTED").length,
-    pending: event.photos.filter((p) => p.status === "PENDING").length,
+    total: event.media.length,
+    approved: event.media.filter((p) => p.status === "APPROVED").length,
+    rejected: event.media.filter((p) => p.status === "REJECTED").length,
+    pending: event.media.filter((p) => p.status === "PENDING").length,
   }
 
   return (

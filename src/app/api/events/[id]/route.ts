@@ -31,7 +31,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         church: {
           select: { name: true },
         },
-        photos: {
+        media: {
+          where: { type: "PHOTO" },
           select: { status: true },
         },
       },
@@ -41,9 +42,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       throw new ApiError(404, "Event not found", "NOT_FOUND")
     }
 
-    const approvedCount = event.photos.filter((p) => p.status === "APPROVED").length
-    const rejectedCount = event.photos.filter((p) => p.status === "REJECTED").length
-    const pendingCount = event.photos.filter((p) => p.status === "PENDING").length
+    const approvedCount = event.media.filter((p) => p.status === "APPROVED").length
+    const rejectedCount = event.media.filter((p) => p.status === "REJECTED").length
+    const pendingCount = event.media.filter((p) => p.status === "PENDING").length
 
     return successResponse({
       id: event.id,
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       status: event.status,
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
-      photoCount: event.photos.length,
+      photoCount: event.media.length,
       approvedCount,
       rejectedCount,
       pendingCount,
@@ -122,7 +123,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const event = await prisma.event.findUnique({
       where: { id, ...getOwnershipFilter(user.id, user.role) },
-      include: { photos: true },
+      include: {
+        media: {
+          include: {
+            versions: true,
+          },
+        },
+      },
     })
 
     if (!event) {
@@ -130,7 +137,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     // Delete photos from S3
-    const s3Keys = event.photos.flatMap((p) => [p.originalKey, p.thumbnailKey])
+    const s3Keys = event.media.flatMap((m) =>
+      m.versions.flatMap((v) => [v.originalKey, v.thumbnailKey])
+    )
     if (s3Keys.length > 0) {
       await deleteFiles(s3Keys)
     }

@@ -17,8 +17,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const event = shareToken.event
 
     if (event) {
-      // Filter only approved photos
-      const approvedPhotos = event.photos.filter((p) => p.status === "APPROVED")
+      const approvedPhotos = await prisma.media.findMany({
+        where: { eventId: event.id, type: "PHOTO", status: "APPROVED" },
+        include: {
+          versions: {
+            orderBy: { versionNumber: "desc" },
+            take: 1,
+          },
+        },
+      })
 
       if (approvedPhotos.length === 0) {
         throw new ApiError(404, "No approved photos to download", "NO_PHOTOS")
@@ -55,10 +62,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
       // Add photos to archive
       const addPhotosToArchive = async () => {
-        for (const photo of approvedPhotos) {
-          try {
-            // Get signed URL for the original photo
-            const url = await getSignedOriginalUrl(photo.originalKey)
+      for (const photo of approvedPhotos) {
+        try {
+          const latest = photo.versions[0]
+          if (!latest) {
+            continue
+          }
+
+          const url = await getSignedOriginalUrl(latest.originalKey)
 
             // Fetch the photo
             const response = await fetch(url)
@@ -70,11 +81,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             const buffer = await response.arrayBuffer()
 
             // Add to archive with original filename
-            archive.append(Buffer.from(buffer), { name: photo.filename })
-          } catch (err) {
-            console.error(`Error adding photo ${photo.id} to ZIP:`, err)
-          }
+          archive.append(Buffer.from(buffer), { name: photo.filename })
+        } catch (err) {
+          console.error(`Error adding photo ${photo.id} to ZIP:`, err)
         }
+      }
 
         // Finalize the archive
         await archive.finalize()

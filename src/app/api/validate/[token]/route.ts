@@ -26,7 +26,7 @@ type ValidationItem = {
   filename: string
   thumbnailUrl: string
   originalUrl?: string
-  status: "PENDING" | "APPROVED" | "REJECTED"
+  status: "PENDING" | "APPROVED" | "REJECTED" | "REVISION_REQUESTED"
   width: number | null
   height: number | null
   uploadedAt: string
@@ -46,28 +46,35 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const event = shareToken.event
 
     if (event) {
-      const photos = event.photos
+      const media = await prisma.media.findMany({
+        where: { eventId: event.id, type: "PHOTO" },
+        include: {
+          versions: { orderBy: { versionNumber: "desc" }, take: 1 },
+        },
+      })
 
-      // Generate signed URLs for thumbnails
       const photosWithUrls = await Promise.all(
-        photos.map(async (photo) => ({
-        id: photo.id,
-        type: "PHOTO",
-        filename: photo.filename,
-        thumbnailUrl: await getSignedThumbnailUrl(photo.thumbnailKey),
-        status: photo.status,
-        width: photo.width,
-          height: photo.height,
-          uploadedAt: photo.uploadedAt.toISOString(),
-          validatedAt: photo.validatedAt?.toISOString() || null,
-        }))
+        media.map(async (m) => {
+          const latest = m.versions[0]
+          return {
+            id: m.id,
+            type: "PHOTO",
+            filename: m.filename,
+            thumbnailUrl: latest ? await getSignedThumbnailUrl(latest.thumbnailKey) : "",
+            status: m.status,
+            width: m.width,
+            height: m.height,
+            uploadedAt: m.createdAt.toISOString(),
+            validatedAt: null,
+          }
+        })
       )
 
       const stats = {
-        total: photos.length,
-        pending: photos.filter((p) => p.status === "PENDING").length,
-        approved: photos.filter((p) => p.status === "APPROVED").length,
-        rejected: photos.filter((p) => p.status === "REJECTED").length,
+        total: media.length,
+        pending: media.filter((p) => p.status === "PENDING").length,
+        approved: media.filter((p) => p.status === "APPROVED").length,
+        rejected: media.filter((p) => p.status === "REJECTED").length,
       }
 
       return successResponse({
@@ -162,15 +169,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const body = await validateBody(request, SubmitValidationSchema)
 
     const eventId = shareToken.eventId
-    const validatorLabel = shareToken.label || "Validator"
 
     if (eventId) {
-      // Validate all photoIds belong to this event
       const photoIds = body.decisions.map((d) => d.photoId)
-      const photos = await prisma.photo.findMany({
+      const photos = await prisma.media.findMany({
         where: {
           id: { in: photoIds },
           eventId,
+          type: "PHOTO",
         },
       })
 
@@ -178,14 +184,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         throw new ApiError(400, "Some photos do not belong to this event", "INVALID_PHOTOS")
       }
 
-      // Update photos
       const updates = body.decisions.map((decision) =>
-        prisma.photo.update({
+        prisma.media.update({
           where: { id: decision.photoId },
           data: {
             status: decision.status,
-            validatedAt: new Date(),
-            validatedBy: validatorLabel,
           },
         })
       )
@@ -193,8 +196,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       await prisma.$transaction(updates)
 
       // Get updated stats
-      const allPhotos = await prisma.photo.findMany({
-        where: { eventId },
+      const allPhotos = await prisma.media.findMany({
+        where: { eventId, type: "PHOTO" },
         select: { status: true },
       })
 

@@ -84,6 +84,9 @@ export function MediaReviewModal({
   const [updating, setUpdating] = useState(false)
   const [revisionComment, setRevisionComment] = useState("")
   const [showRevisionInput, setShowRevisionInput] = useState(false)
+  const [versionUploading, setVersionUploading] = useState(false)
+  const [versionProgress, setVersionProgress] = useState(0)
+  const [versionNotes, setVersionNotes] = useState("")
 
   async function updateStatus(status: MediaStatus) {
     setUpdating(true)
@@ -113,6 +116,109 @@ export function MediaReviewModal({
   }
 
   const actions = getActions(media.status, media.type)
+
+  async function extractVideoThumbnail(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement("video")
+      const canvas = document.createElement("canvas")
+      const ctx = canvas.getContext("2d")
+
+      video.preload = "metadata"
+      video.muted = true
+      video.playsInline = true
+
+      video.onloadeddata = () => {
+        video.currentTime = Math.min(1, video.duration * 0.1)
+      }
+
+      video.onseeked = () => {
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        ctx?.drawImage(video, 0, 0)
+        const dataUrl = canvas.toDataURL("image/webp", 0.8)
+        URL.revokeObjectURL(video.src)
+        resolve(dataUrl)
+      }
+
+      video.onerror = () => {
+        URL.revokeObjectURL(video.src)
+        reject(new Error("Could not load video"))
+      }
+
+      video.src = URL.createObjectURL(file)
+    })
+  }
+
+  async function uploadNewVersion(file: File) {
+    setVersionUploading(true)
+    setVersionProgress(0)
+    try {
+      const signRes = await fetch(`/api/media/${media.id}/versions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+          size: file.size,
+          notes: versionNotes || undefined,
+        }),
+      })
+      const signData = await signRes.json()
+      if (!signRes.ok) {
+        throw new Error(signData.error?.message || "Erreur lors de la préparation de l'upload")
+      }
+
+      const { uploadId, url } = signData.data
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const progress = Math.round((e.loaded / e.total) * 100)
+            setVersionProgress(progress)
+          }
+        }
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve()
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`))
+          }
+        }
+        xhr.onerror = () => reject(new Error("Network error during upload"))
+        xhr.open("PUT", url)
+        xhr.setRequestHeader("Content-Type", file.type)
+        xhr.send(file)
+      })
+
+      let thumbnailDataUrl: string | undefined
+      if (media.type === "VIDEO") {
+        thumbnailDataUrl = await extractVideoThumbnail(file)
+      }
+
+      const confirmRes = await fetch(`/api/media/${media.id}/versions`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uploadId,
+          thumbnailDataUrl,
+          notes: versionNotes || undefined,
+        }),
+      })
+      const confirmData = await confirmRes.json()
+      if (!confirmRes.ok) {
+        throw new Error(confirmData.error?.message || "Erreur lors de la confirmation")
+      }
+
+      onStatusChange(media.id, "IN_REVIEW")
+      setVersionNotes("")
+      setVersionProgress(0)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur lors de l'upload")
+    } finally {
+      setVersionUploading(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
@@ -175,6 +281,41 @@ export function MediaReviewModal({
                   <p className="text-sm text-gray-500">Aucune action disponible</p>
                 )}
               </div>
+
+              {media.type !== "PHOTO" &&
+                (media.status === "REVISION_REQUESTED" || media.status === "REJECTED") && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <label className="text-sm font-medium text-gray-700">
+                      Nouvelle version
+                    </label>
+                    <input
+                      type="file"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          void uploadNewVersion(file)
+                        }
+                        e.currentTarget.value = ""
+                      }}
+                      disabled={versionUploading}
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={versionNotes}
+                    onChange={(e) => setVersionNotes(e.target.value)}
+                    placeholder="Notes de version (optionnel)"
+                    className="w-full border border-gray-300 rounded-md p-2 text-sm"
+                    disabled={versionUploading}
+                  />
+                  {versionUploading && (
+                    <div className="text-xs text-gray-600">
+                      Upload en cours... {versionProgress}%
+                    </div>
+                  )}
+                </div>
+              )}
 
               {showRevisionInput && (
                 <div className="space-y-2">
