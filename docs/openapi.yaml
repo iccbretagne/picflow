@@ -122,8 +122,8 @@ components:
       properties:
         id:
           type: string
-          format: cuid
-          example: clx1234567890abcdef
+          format: cuid2
+          example: cmky7c8c8a8hGF-m6sN8
         name:
           type: string
           example: Culte du 19 janvier
@@ -216,8 +216,8 @@ components:
       properties:
         id:
           type: string
-          format: cuid
-          example: clx0987654321fedcba
+          format: cuid2
+          example: cmky7d1f2b3c4d5e6f7g8
         filename:
           type: string
           example: IMG_4523.jpg
@@ -266,7 +266,7 @@ components:
             properties:
               id:
                 type: string
-                format: cuid
+                format: cuid2
               filename:
                 type: string
               thumbnailUrl:
@@ -334,7 +334,7 @@ components:
           properties:
             id:
               type: string
-              format: cuid
+              format: cuid2
             name:
               type: string
             date:
@@ -372,7 +372,7 @@ components:
             properties:
               photoId:
                 type: string
-                format: cuid
+                format: cuid2
               status:
                 type: string
                 enum: [APPROVED, REJECTED]
@@ -402,7 +402,7 @@ components:
       properties:
         jobId:
           type: string
-          format: cuid
+          format: cuid2
         statusUrl:
           type: string
           format: uri
@@ -536,7 +536,7 @@ paths:
         required: true
         schema:
           type: string
-          format: cuid
+          format: cuid2
 
     get:
       tags: [Events]
@@ -632,7 +632,7 @@ paths:
         required: true
         schema:
           type: string
-          format: cuid
+          format: cuid2
 
     post:
       tags: [Events]
@@ -735,7 +735,7 @@ paths:
               properties:
                 eventId:
                   type: string
-                  format: cuid
+                  format: cuid2
                 files:
                   type: array
                   items:
@@ -774,7 +774,7 @@ paths:
         required: true
         schema:
           type: string
-          format: cuid
+          format: cuid2
 
     delete:
       tags: [Photos]
@@ -805,7 +805,7 @@ paths:
         required: true
         schema:
           type: string
-          format: cuid
+          format: cuid2
 
     get:
       tags: [Photos]
@@ -929,7 +929,7 @@ paths:
         required: true
         schema:
           type: string
-          format: cuid
+          format: cuid2
 
     get:
       tags: [Validation]
@@ -1024,7 +1024,7 @@ paths:
         required: true
         schema:
           type: string
-          format: cuid
+          format: cuid2
 
     get:
       tags: [Download]
@@ -1092,7 +1092,7 @@ paths:
                   type: array
                   items:
                     type: string
-                    format: cuid
+                    format: cuid2
                   description: IDs des photos à inclure (vide = toutes les validées)
       responses:
         '202':
@@ -1120,7 +1120,7 @@ paths:
         required: true
         schema:
           type: string
-          format: cuid
+          format: cuid2
 
     get:
       tags: [Download]

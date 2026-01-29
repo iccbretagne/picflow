@@ -13,6 +13,8 @@
 
 ## 1. Modèle de Données
 
+> Note : les IDs métier (Church, Event, Project, Media, Photo, Comment, ShareToken, ZipJob) sont générés par l'app en **cuid2**. Prisma reçoit l'ID fourni (les `@default(cuid())` du schéma ne sont pas utilisés en pratique pour ces entités).
+
 ### 1.1 Schéma Entité-Relation
 
 ```
@@ -407,7 +409,7 @@ export const ErrorSchema = z.object({
 }).openapi("Error")
 
 export const IdParamSchema = z.object({
-  id: z.string().cuid().openapi({ example: "clx1234567890abcdef" }),
+  id: z.string().cuid2().openapi({ example: "cmky7c8c8a8hGF-m6sN8" }),
 })
 
 export const TokenParamSchema = z.object({
@@ -446,7 +448,7 @@ export const ListEventsQuerySchema = z.object({
 
 // Response schemas
 export const EventSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().cuid2(),
   name: z.string(),
   date: z.string().datetime(),
   church: z.string(),
@@ -489,7 +491,7 @@ export const PhotoStatusEnum = z.enum([
 ]).openapi("PhotoStatus")
 
 export const PhotoSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().cuid2(),
   filename: z.string(),
   thumbnailUrl: z.string().url(),
   status: PhotoStatusEnum,
@@ -505,7 +507,7 @@ export const PhotoWithUrlSchema = PhotoSchema.extend({
 
 export const UploadResponseSchema = z.object({
   uploaded: z.array(z.object({
-    id: z.string().cuid(),
+    id: z.string().cuid2(),
     filename: z.string(),
     thumbnailUrl: z.string().url(),
   })),
@@ -535,7 +537,7 @@ export const ValidationEventResponseSchema = z.object({
 
 export const SubmitValidationSchema = z.object({
   decisions: z.array(z.object({
-    photoId: z.string().cuid(),
+    photoId: z.string().cuid2(),
     status: z.enum(["APPROVED", "REJECTED"]),
   })).min(1),
 }).openapi("SubmitValidationRequest")
